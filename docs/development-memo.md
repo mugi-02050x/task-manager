@@ -116,7 +116,26 @@ plugins: [react(), tailwindcss()],
 
 ---
 
-## 6. Q&A
+## 6. GitHubへのpush
+
+```bash
+git init                            # カレントディレクトリに .git を作成し、独立したリポジトリとして初期化
+git add .                           # 変更ファイルをステージング
+git commit -m "メッセージ"          # コミット
+git remote add origin <URL>         # リモートリポジトリを登録
+git branch -m master main           # ブランチ名を master から main にリネーム
+git push -u origin main             # リモートに push（-u で追跡ブランチを設定）
+```
+
+### つまずきポイント
+
+- `git rev-parse --show-toplevel`: gitリポジトリのルートディレクトリを表示するコマンド。`~/work/` が返ってきた場合、`~/work/` に `.git` が存在しており、カレントディレクトリが独立したリポジトリになっていないことを意味する
+- `git init` を意図しないディレクトリで実行すると、そのディレクトリ以下が1つのリポジトリとして扱われる。配下に別のリポジトリがある場合は「embedded git repository」として警告が出る
+- `git push -u origin main` でブランチが存在しないエラーが出た場合、コミットが済んでいないかブランチ名が異なる（`master` のまま等）
+
+---
+
+## 7. Q&A
 
 **Q. `-D` オプションとは何ですか？**  
 `--save-dev` の省略形。開発環境のみで使うパッケージとして `devDependencies` に追加する。Vitest や Testing Library はテスト実行用のツールなので本番ビルドには含める必要がない。
