@@ -184,6 +184,98 @@ A. このプロジェクト規模（Action 8個）では分割しなくてもよ
 
 ---
 
+## 9. 実装開始（2026-04-13）
+
+### 実装順序
+
+`docs/implementation-order.md` に実装順序をチェックリスト形式で作成。Phase 1（基盤層）→ Phase 2（状態管理層）→ Phase 3（UI層）の順で進める。
+
+### `src/utils/timeCalculator.ts` 実装
+
+- `calcElapsed(trackRecords, taskId)`: 指定タスクの実績時間合計を返す
+- `formatElapsed(diff)`: ミリ秒をフォーマットして返す（差し替え可能な設計）
+- `toQuarterHour(diff)`: ミリ秒を0.25h単位に切り捨てて返す
+
+**設計上の意思決定:**
+- 各レコードを個別に変換するのではなく、合計してから1回 `formatElapsed` を通す設計に変更。各レコードで切り捨てると誤差が積み重なるため
+- `formatElapsed` を差し替えポイントとして切り出すことで、将来「1時間25分」形式などへの変更に対応できる
+- `calcElapsed` の戻り値は `number`（時間単位）。表示フォーマットは `ElapsedTime.tsx` が担う
+
+**呼び出し元:** `ElapsedTime.tsx` が `calcElapsed` をインポートして呼び出す。親タスクへの集計も `ElapsedTime.tsx` 側で子の `taskId` を収集して `calcElapsed` を複数回呼んで合算する。
+
+### `src/utils/taskTree.ts` 実装
+
+- `getChildren(tasks, parentId)`: 指定した親IDの子タスク一覧を返す
+- `getDepth(tasks, taskId)`: タスクの階層の深さを返す（ルートは1、再帰実装）
+- `countChildren(tasks, parentId)`: 子タスクの件数を返す（`getChildren` を内部利用）
+- `getDescendants(tasks, taskId)`: 子孫タスクを全て返す（DFS・再帰実装）
+
+**設計上の意思決定:**
+- `getDepth` の対象タスクが見つからない場合は `find` で `undefined` になるためガード処理が必要
+- `getDescendants` はBFS（whileループ）とDFS（再帰）どちらでも実装可能。`let` を避けるため再帰（DFS）を採用
+
+### Vitestテストコードの書き方
+
+```ts
+describe("グループ名", () => {
+  it("〜のとき、〜を返す", () => {
+    const result = 対象関数(...);
+    expect(result).toBe(期待値);
+  });
+});
+```
+
+- `describe`: テスト対象のグループ名
+- `it`: 1つのテストケース
+- `expect().toBe()`: 期待値との一致を検証
+
+**テストの実行:**
+
+```bash
+npx vitest run           # 1回実行
+npx vitest               # ウォッチモード
+npx vitest run --coverage  # カバレッジ付き
+```
+
+**ファイル配置:** `src/test/` 配下に `utils/` / `hooks/` / `components/` でサブディレクトリを分けて管理。
+
+### Q&A
+
+**Q. `setup.ts` は無視して良いか？**  
+A. 無視しない。`vite.config.ts` の `setupFiles` に登録されており、全テストで DOM 用マッチャー（`toBeInTheDocument()` 等）が使えるようになっている。将来のコンポーネントテストの準備として活きる。
+
+**Q. テストファイルのインポートはワイルドカードで書けるか？**  
+A. `import * as taskTree from "../../utils/taskTree"` で可能。ただし呼び出し時に `taskTree.getChildren(...)` のようなプレフィックスが必要になるため、名前付きインポートの方が一般的。
+
+**Q. `getDescendants` をBFSで `let` なしに書けるか？**  
+A. `flatMap` を使えば書けるが、再帰になるため結果的にDFSと同じ方式になる。
+
+### `src/hooks/useLocalStorage.ts` 実装
+
+```ts
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    const item = localStorage.getItem(key);
+    return item ? (JSON.parse(item) as T) : initialValue;
+  });
+
+  const setValue = (value: T) => {
+    setStoredValue(value);
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  return [storedValue, setValue] as const;
+}
+```
+
+**ポイント:**
+
+- **lazy initializer**: `useState` に関数を渡すことで初回レンダリング時のみ `localStorage.getItem` が実行される。値を直接渡すと毎回実行されるため非効率
+- **`setValue`**: React の state 更新と localStorage への書き込みを同時に行う。呼び出し側は localStorage を意識せずに `useState` と同じ感覚で使える
+- **`as const`**: 戻り値を `(T | (value: T) => void)[]` ではなく `readonly [T, (value: T) => void]` のタプル型として推論させる。`useState` と同じ形式
+
+---
+
 ## 7. Q&A
 
 **Q. `-D` オプションとは何ですか？**  
