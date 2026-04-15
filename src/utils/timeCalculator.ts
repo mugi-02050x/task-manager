@@ -6,7 +6,7 @@ import type { TaskTrackRecord } from "../types/task";
  * @param taskId 集計対象のタスクID
  * @returns 実績時間の合計をフォーマットした値
  */
-export function calcElapsed(
+function calcElapsed(
   trackRecords: Array<TaskTrackRecord>,
   taskId: string,
 ): number {
@@ -25,7 +25,7 @@ export function calcElapsed(
  * 実績時間の合計（ミリ秒）をフォーマットして返す
  * ※フォーマット形式を変更する場合はこの関数を差し替える
  * @param diff 実績時間の合計（ミリ秒）
- * @returns フォーマットされた実績時間
+ * @returns フォーマットされた実績時間（0.25h単位）
  */
 function formatElapsed(diff: number): number {
   return toQuarterHour(diff);
@@ -41,3 +41,5 @@ function toQuarterHour(diff: number): number {
   const floorHours = Math.floor(diffInHours * 4) / 4;
   return floorHours;
 }
+
+export { calcElapsed, formatElapsed };

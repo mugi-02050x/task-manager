@@ -45,6 +45,15 @@ export function countChildren(tasks: Task[], parentId: string): number {
 }
 
 /**
+ * ルートタスクの件数を返す
+ * @param tasks タスクの配列
+ * @returns ルートタスクの件数
+ */
+export function countRootTasks(tasks: Task[]): number {
+  return getRootTasks(tasks).length;
+}
+
+/**
  * 指定したタスクの子孫タスク（子・孫・ひ孫...）を全て返す
  * @param tasks タスクの配列
  * @param taskId 対象タスクのID

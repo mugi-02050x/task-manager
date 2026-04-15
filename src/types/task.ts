@@ -55,11 +55,6 @@ type DeleteTrackRecordAction = {
   payload: string; // 実績レコードID
 };
 
-type ChangeEndDateAction = {
-  type: "CHANGE_END_DATETIME";
-  payload: { id: string; endDatetime: Date };
-};
-
 type ImportAction = {
   type: "IMPORT";
   payload: TaskState;
@@ -71,8 +66,28 @@ type TaskAction =
   | DeleteTaskAction
   | ChangeStatusAction
   | AddTrackRecordAction
-  | ChangeEndDateAction
   | DeleteTrackRecordAction
   | ImportAction;
 
-export type { TaskStatus, Task, TaskTrackRecord, TaskState, TaskAction };
+type CreateTaskParams = {
+  taskName: string;
+  description: string;
+  status: TaskStatus;
+  parentId: string | null;
+};
+
+type UpdateTaskParams = {
+  taskName: string;
+  description: string;
+  status: TaskStatus;
+};
+
+export type {
+  TaskStatus,
+  Task,
+  TaskTrackRecord,
+  TaskState,
+  TaskAction,
+  CreateTaskParams,
+  UpdateTaskParams,
+};
