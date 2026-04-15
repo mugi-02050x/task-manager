@@ -38,15 +38,6 @@ function reducer(state: TaskState, action: TaskAction): TaskState {
         ...state,
         trackRecords: state.trackRecords.filter((t) => t.id !== action.payload),
       };
-    case "CHANGE_END_DATETIME":
-      return {
-        ...state,
-        trackRecords: state.trackRecords.map((trackRecord) =>
-          trackRecord.id === action.payload.id
-            ? { ...trackRecord, endDatetime: action.payload.endDatetime }
-            : trackRecord,
-        ),
-      };
     case "IMPORT":
       return action.payload;
     default:
