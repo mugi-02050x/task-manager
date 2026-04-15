@@ -274,6 +274,182 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 - **`setValue`**: React の state 更新と localStorage への書き込みを同時に行う。呼び出し側は localStorage を意識せずに `useState` と同じ感覚で使える
 - **`as const`**: 戻り値を `(T | (value: T) => void)[]` ではなく `readonly [T, (value: T) => void]` のタプル型として推論させる。`useState` と同じ形式
 
+### `src/contexts/TaskContext.tsx` 実装
+
+- `TaskContext`: `createContext` で作成。初期値は `null`（Provider 外で使ったときにエラーで検知するため）
+- `TaskProvider`: `useReducer` + `useLocalStorage` を組み合わせて state を管理・永続化する
+- `useTaskContext`: `useContext(TaskContext)` のラッパー。`null` チェックを内包する
+
+**`useEffect` で localStorage に自動保存:**
+
+```ts
+useEffect(() => {
+  setStoredState(state);
+}, [state, setStoredState]);
+```
+
+state が変わるたびにレンダリング後に実行される。`dispatch` 直後に保存すると1つ前の state が保存されてしまうため `useEffect` が必要。
+
+**`useCallback` で無限ループを防止:**
+
+`setValue`（`setStoredState`）は毎回新しい関数参照が生成されるため、`useEffect` の依存配列に含めると無限ループが発生する。`useLocalStorage` 内で `useCallback` を使い関数参照を固定することで解決。
+
+### Context のテストパターン
+
+```tsx
+// wrapper で Provider をラップして renderHook に渡す
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <TaskProvider>{children}</TaskProvider>
+);
+const { result } = renderHook(() => useTaskContext(), { wrapper });
+```
+
+Context のテストでは「dispatch が正しく Context に反映されるか」に絞る。reducer の全 Action 検証は `taskReducer.test.ts` で行う。
+
+### localStorage モックの共通化
+
+`src/test/setup.ts` に localStorage モックと `beforeEach` のクリア処理を追加することで全テストファイルで共通利用できる。各テストファイルへの個別記述が不要になる。
+
+### Vitest について
+
+**利用場面:** Vite を使ったプロジェクト（React / Vue 等）。Next.js など Vite 以外では Jest が選ばれることが多い。
+
+**代替手段:**
+
+| ツール | 特徴 |
+|--------|------|
+| Jest | 最も普及。Next.js のデフォルト |
+| Mocha | 古くからある。アサーションライブラリを別途用意する必要がある |
+| Playwright | E2E テスト向け。実際のブラウザで動作する |
+| Cypress | E2E テスト向け。GUI があり視覚的に確認しやすい |
+
+**React Testing Library との役割分担:**
+
+| テスト対象 | 使うもの | 検証する内容 |
+|-----------|---------|-------------|
+| 純粋関数・utils | Vitest のみ | 戻り値 |
+| カスタムフック・Context | `renderHook` + Vitest | `result.current` の値 |
+| コンポーネント | `render` + React Testing Library | DOM の状態・ユーザー操作への反応 |
+
+React Testing Library はコンポーネントを実際にレンダリングした結果の DOM を検証する。state を直接見ないのは「ユーザーは state を見ることができないから」という思想に基づく。
+
+**E2E テストが必要なケース:**
+
+React Testing Library は jsdom 上で動くため、以下は再現できない。
+
+- ブラウザ間の差異
+- 実際のネットワーク通信
+- ファイルダウンロード等のブラウザ固有機能
+- 実際の localStorage の永続化（ブラウザ再起動後の復元など）
+
+このアプリは1画面・ローカルのみ・API なしのため E2E テストは不要。
+
+### `src/hooks/useTaskManager.ts` 実装
+
+- `addTask`: UUID生成・`createdAt`・`dispOrder` を内部で付与して dispatch。階層深さ（最大5）・子タスク件数（最大20）のバリデーションあり
+- `updateTask`: 対象タスクを `find` で取得し、`...currentTask` を先に展開して `params` で上書き
+- `deleteTask`: 対象タスクと子孫タスク・関連 trackRecords を再帰で削除
+- `changeStatus`: `CHANGE_STATUS` action を dispatch
+
+**設計上の意思決定:**
+
+- `CreateTaskParams` / `UpdateTaskParams` は `src/types/task.ts` に移動して外部から利用可能にした
+- `deleteTask` で存在しない ID を渡してもエラーにならない（`filter` の仕様）。テストケースとして「エラーにならない」ことを明示的に検証する
+
+**テストのポイント:**
+
+- `dispOrder` の検証で同一 `act` 内に複数の `addTask` を入れると state が更新される前に次の `addTask` が実行されるため `act` を分ける必要がある
+- `id` / `createdAt` は内部生成のため `toMatchObject` でビジネスロジック上重要なフィールドのみ検証する
+- `crypto.randomUUID` / `Date` はブラウザ・JS 標準の関数なのでモック不要
+- `toMatchObject` は渡したフィールドのみ検証し、余分なフィールドは無視する
+
+**`vi.spyOn` のリセット共通化:**
+
+`src/test/setup.ts` に `afterEach(() => { vi.restoreAllMocks(); })` を追加することで、各テストファイルでのリセット処理が不要になる。
+
+---
+
+## 10. useTimer・taskReducer テスト実装（2026-04-15）
+
+### `src/hooks/useTimer.ts` 実装
+
+- `start(taskId)`: `stop()` を呼んでから `runningTaskId` と `startedAt` をセット
+- `stop()`: 経過時間が15分以上のときのみ `ADD_TRACK_RECORD` を dispatch して trackRecord を登録
+
+**15分判定の実装:**
+
+```ts
+if (
+  runningTaskId &&
+  startedAt &&
+  formatElapsed(Date.now() - startedAt.getTime()) > 0
+) { ... }
+```
+
+`formatElapsed` は0.25h（15分）単位に切り捨てるため、15分未満は `0` が返る。`> 0` チェックで15分判定を行う。タスク再開時は新規レコードとして追加され、既存レコードを更新する処理は発生しない。
+
+**`CHANGE_END_DATETIME` の削除:**
+
+タイマー停止時に `ADD_TRACK_RECORD` で追加し、以降でレコードを更新する処理は発生しない設計のため削除。
+
+### `useTimer.test.tsx` テストパターン
+
+**Fake Timer を使った時間制御:**
+
+`vi.spyOn(globalThis, "Date")` でのモックは型エラーが起きるケースがある。`vi.useFakeTimers()` と `vi.setSystemTime()` を使うことで `new Date()` と `Date.now()` の両方を一括制御できる。
+
+```ts
+vi.useFakeTimers();
+vi.setSystemTime(new Date("2024-01-01T10:00:00")); // start 時刻
+
+act(() => { result.current.manager.start("taskId"); });
+
+vi.setSystemTime(new Date("2024-01-01T10:10:00")); // 10分後に stop
+act(() => { result.current.manager.stop(); });
+
+vi.useRealTimers(); // テスト後は必ず元に戻す
+```
+
+**複数フックを同時にテストする場合:**
+
+```tsx
+const { result } = renderHook(
+  () => ({ manager: useTimer(), context: useTaskContext() }),
+  { wrapper },
+);
+// result.current.manager.start() / result.current.context.state.trackRecords
+```
+
+1つの `renderHook` で複数のフックをまとめてテストできる。
+
+### `taskReducer.test.ts` テストパターン
+
+reducer は純粋関数のため `renderHook` / `wrapper` は不要。関数を直接呼び出してテストする。
+
+```ts
+const state = { tasks: [], trackRecords: [] };
+const nextState = reducer(state, action);
+expect(nextState.tasks).toHaveLength(1);
+```
+
+**検証に使うマッチャー:**
+
+| マッチャー | 用途 |
+|-----------|------|
+| `toEqual` | オブジェクト全フィールドを再帰比較 |
+| `toMatchObject` | 指定フィールドのみ検証（余分なフィールドは無視） |
+| `toHaveLength` | 配列の要素数を確認 |
+
+更新対象フィールドが明確な場合は `toMatchObject` で変更箇所に絞る方がシンプル。
+
+### Q&A
+
+**Q. `taskReducer` のテストは React のレンダリングを意識しなくて良いか？**  
+A. 意識不要。reducer は `(state, action) => newState` の純粋関数。React や Context とは無関係なので `renderHook` や `wrapper` は使わない。state もオブジェクトリテラルで直接作れる。
+
+**Q. 更新後のタスクの比較は `toEqual` か `toMatchObject` か？**  
+A. どちらも使える。変更箇所が明確なら `toMatchObject` で対象フィールドに絞る方がシンプル。全フィールドを確認したい場合は `toEqual` を使う。
+
 ---
 
 ## 7. Q&A

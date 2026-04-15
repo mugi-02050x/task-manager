@@ -18,10 +18,10 @@
 
 `reducer` / `initialState` は `src/reducers/taskReducer.ts` に実装済み。Context と カスタムフックを組み立てる。
 
-- [ ] `src/contexts/TaskContext.tsx` — タスク状態・dispatch（useLocalStorage で自動保存）
-- [ ] `src/contexts/TimerContext.tsx` — タイマー状態（runningTaskId / startedAt）
-- [ ] `src/hooks/useTaskManager.ts` — タスク CRUD（addTask / updateTask / deleteTask / changeStatus）
-- [ ] `src/hooks/useTimer.ts` — タイマー開始/停止（15分未満は破棄）
+- [x] `src/contexts/TaskContext.tsx` — タスク状態・dispatch（useLocalStorage で自動保存）
+- [x] `src/contexts/TimerContext.tsx` — タイマー状態（runningTaskId / startedAt）
+- [x] `src/hooks/useTaskManager.ts` — タスク CRUD（addTask / updateTask / deleteTask / changeStatus）
+- [x] `src/hooks/useTimer.ts` — タイマー開始/停止（15分未満は破棄）
 
 ---
 
@@ -29,7 +29,7 @@
 
 Context Provider を上位に置き、上から順に組み立てる。
 
-- [ ] `src/App.tsx` — Context Provider でラップするシンプルな構成に書き直し
+- [x] `src/App.tsx` — Context Provider でラップするシンプルな構成に書き直し
 - [ ] `src/components/Header/Header.tsx` — タイトル・エクスポートボタン
 - [ ] `src/components/Header/ExportImportButton.tsx` — パネル開閉ボタン
 - [ ] `src/components/TaskTree/TaskTree.tsx` — ルートタスク一覧 + タスク追加ボタン
@@ -52,3 +52,9 @@ Context Provider を上位に置き、上から順に組み立てる。
 
 - [x] `src/types/task.ts` — Task / TaskTrackRecord の型定義
 - [x] `src/reducers/taskReducer.ts` — タスクの state 更新ロジック
+
+---
+
+## テスト追加予定
+
+- [x] `src/test/reducers/taskReducer.test.ts` — 全 Action の動作確認
