@@ -1,0 +1,78 @@
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "taskName": "フロントエンド開発",
+      "description": "フロントエンド全般の開発タスク",
+      "status": "WORKING",
+      "parentId": null,
+      "dispOrder": 1,
+      "createdAt": "2024-01-01T09:00:00.000Z"
+    },
+    {
+      "id": "task-2",
+      "taskName": "コンポーネント実装",
+      "description": "各UIコンポーネントの実装",
+      "status": "WORKING",
+      "parentId": "task-1",
+      "dispOrder": 1,
+      "createdAt": "2024-01-01T09:10:00.000Z"
+    },
+    {
+      "id": "task-3",
+      "taskName": "Headerコンポーネント",
+      "description": "",
+      "status": "COMPLETED",
+      "parentId": "task-2",
+      "dispOrder": 1,
+      "createdAt": "2024-01-01T09:20:00.000Z"
+    },
+    {
+      "id": "task-4",
+      "taskName": "TaskListコンポーネント",
+      "description": "",
+      "status": "WORKING",
+      "parentId": "task-2",
+      "dispOrder": 2,
+      "createdAt": "2024-01-01T09:30:00.000Z"
+    },
+    {
+      "id": "task-5",
+      "taskName": "テストコード実装",
+      "description": "各モジュールのユニットテスト",
+      "status": "WAITING",
+      "parentId": "task-1",
+      "dispOrder": 2,
+      "createdAt": "2024-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "task-6",
+      "taskName": "バックエンド開発",
+      "description": "API開発タスク",
+      "status": "WAITING",
+      "parentId": null,
+      "dispOrder": 2,
+      "createdAt": "2024-01-02T09:00:00.000Z"
+    }
+  ],
+  "trackRecords": [
+    {
+      "id": "record-1",
+      "taskId": "task-3",
+      "startDatetime": "2024-01-01T09:00:00.000Z",
+      "endDatetime": "2024-01-01T10:00:00.000Z"
+    },
+    {
+      "id": "record-2",
+      "taskId": "task-3",
+      "startDatetime": "2024-01-01T13:00:00.000Z",
+      "endDatetime": "2024-01-01T14:00:00.000Z"
+    },
+    {
+      "id": "record-3",
+      "taskId": "task-4",
+      "startDatetime": "2024-01-02T09:00:00.000Z",
+      "endDatetime": "2024-01-02T10:30:00.000Z"
+    }
+  ]
+}
