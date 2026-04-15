@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   // lazy initializer: 初回レンダリング時のみ localStorage から値を読み込む
@@ -7,11 +7,15 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     return item ? (JSON.parse(item) as T) : initialValue;
   });
 
-  // state の更新と localStorage への書き込みを同時に行う
-  const setValue = (value: T) => {
-    setStoredValue(value);
-    localStorage.setItem(key, JSON.stringify(value));
-  };
+  // useCallback でメモ化することで関数の参照を固定する
+  // これにより、この関数を useEffect の依存配列に含めても無限ループが発生しない
+  const setValue = useCallback(
+    (value: T) => {
+      setStoredValue(value);
+      localStorage.setItem(key, JSON.stringify(value));
+    },
+    [key],
+  );
 
   // as const により readonly [T, (value: T) => void] として型推論される
   return [storedValue, setValue] as const;

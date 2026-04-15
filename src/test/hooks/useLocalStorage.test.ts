@@ -1,26 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 const TEST_KEY = "test-key";
-
-// localStorage のモック
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => { store[key] = value; },
-    removeItem: (key: string) => { delete store[key]; },
-    clear: () => { store = {}; },
-  };
-})();
-
-vi.stubGlobal("localStorage", localStorageMock);
-
-// テスト間で localStorage が汚染されないようにクリアする
-beforeEach(() => {
-  localStorage.clear();
-});
 
 describe("useLocalStorage", () => {
   it("localStorageに値がないとき、initialValueを返す", () => {
