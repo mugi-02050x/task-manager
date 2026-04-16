@@ -452,6 +452,94 @@ A. どちらも使える。変更箇所が明確なら `toMatchObject` で対象
 
 ---
 
+## 11. UI層実装（2026-04-16）
+
+### コンポーネント実装方針
+
+- **ロジック・構造を先に固めてからTailwindでスタイルを当てる**（構造が変わるとクラスも書き直しになるため）
+- **コンポーネントは `useTaskManager` だけを import する**（taskTree.ts を直接使わない）
+- JSX内のコメントは `{/* */}` を使う（`//` はそのまま文字列としてレンダリングされる）
+- `map` で要素を生成する際は必ず `key` を設定する
+
+### `useEffect` の注意点
+
+StrictMode では `useEffect` が2回実行される（1回目→クリーンアップ→2回目）。クリーンアップで打ち消せない副作用（タスク追加等）は `useEffect` に書かない。動作確認用データは localStorage に直接投入する。
+
+### zod によるバリデーション
+
+TypeScript の型情報は実行時に消えるため、JSONファイルの型チェックには zod を使う。
+
+```ts
+const TaskStateSchema = z.object({
+  tasks: z.array(TaskSchema),
+  trackRecords: z.array(TaskTrackRecordSchema),
+});
+
+// z.coerce.date() で日付文字列を Date 型に自動変換
+const data = TaskStateSchema.parse(JSON.parse(json));
+```
+
+localStorage から復元した値も日付が文字列になるため、`useReducer` の initializer で zod スキーマを通して変換する。
+
+```ts
+const [state, dispatch] = useReducer(reducer, storedState, (s) => {
+  try {
+    return TaskStateSchema.parse(s);
+  } catch {
+    return initialState;
+  }
+});
+```
+
+### `useElapsed` の設計
+
+実績時間の計算は `useTaskManager` や `useTimer` ではなく、専用の `useElapsed` フックに切り出す。
+
+- `calcElapsed`: ミリ秒の合算のみ担当（フォーマットしない）
+- `formatElapsed`: ミリ秒を0.25h単位に変換
+- `useElapsed`: 自身と子孫タスクのIDをループして `calcElapsed` で合算し、`formatElapsed` で変換
+
+`trackRecords` が更新されると自動的に再計算される（明示的なトリガー不要）。
+
+### `exportState` のテスト
+
+ブラウザAPIをモックして検証する。
+
+```ts
+const mockClick = vi.fn();
+const mockAnchor = { href: "", download: "", click: mockClick };
+vi.spyOn(document, "createElement").mockReturnValue(mockAnchor as unknown as HTMLElement);
+vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
+vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+```
+
+### JSON文字列のテストデータ
+
+テンプレートリテラルでJSONを書くと形式エラーになりやすい（キーのクォートなし・`new Date()` 使用不可）。`JSON.stringify` でオブジェクトから生成する方が確実。
+
+```ts
+const jsonStr = JSON.stringify({ tasks: [...], trackRecords: [...] });
+```
+
+### Q&A
+
+**Q. `useEffect` で state を変更するような操作はしない方が良いか？**  
+A. クリーンアップで打ち消せない副作用は避けた方が良い。クリーンアップ関数は `return () => { ... }` の形で書く必要があり、`return forEach(...)` はクリーンアップとして機能しない（`forEach` の戻り値 `undefined` を return しているだけ）。
+
+**Q. タイマーが動いているかどうかの検知方法は？**  
+A. `useTimer` が返す `runningTaskId` と自分の `taskId` を比較する。`runningTaskId === taskId` で自分のタスクが実行中かどうかを判定できる。
+
+**Q. `calcElapsed` で親タスクの実績を計算できるか？**  
+A. できない。`calcElapsed` は単一タスクの合算のみ。`useElapsed` 側で子孫タスクのIDを収集してループし、合算してから `formatElapsed` を通す。各タスクで `formatElapsed` を呼ぶと切り捨て誤差が積み重なるため、合算後に1回だけ呼ぶ。
+
+**Q. Hook をループの中で呼べないとはどういうことか？**  
+A. `getDescendants().reduce(task => useElapsed(task.id))` のような書き方はできない。Hook のルール上、Hook はコンポーネント/カスタムフックのトップレベルでしか呼べない。Hook の中でループを使うのは問題ない。
+
+**Q. コンポーネントのテストは必要か？**  
+A. このアプリの規模では不要。ロジックは hooks/utils/reducer に集約されてテスト済みで、UIの確認はブラウザで直接行える。コンポーネントテストが有効なのは複雑なユーザー操作フローや条件分岐の多いUIがある場合。
+
+---
+
 ## 7. Q&A
 
 **Q. `-D` オプションとは何ですか？**  

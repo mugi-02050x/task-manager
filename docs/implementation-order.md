@@ -30,21 +30,21 @@
 Context Provider を上位に置き、上から順に組み立てる。
 
 - [x] `src/App.tsx` — Context Provider でラップするシンプルな構成に書き直し
-- [ ] `src/components/Header/Header.tsx` — タイトル・エクスポートボタン
-- [ ] `src/components/Header/ExportImportButton.tsx` — パネル開閉ボタン
-- [ ] `src/components/TaskTree/TaskTree.tsx` — ルートタスク一覧 + タスク追加ボタン
-- [ ] `src/components/TaskTree/TaskNode.tsx` — 再帰コンポーネント（子タスクを再帰的にレンダリング）
-- [ ] `src/components/TaskTree/TaskRow/StatusBadge.tsx` — ステータス表示・クリックで変更
-- [ ] `src/components/TaskTree/TaskRow/TimerButton.tsx` — タイマー開始/停止ボタン
-- [ ] `src/components/TaskTree/TaskRow/ElapsedTime.tsx` — 実績時間の表示
-- [ ] `src/components/TaskTree/TaskRow/TaskActionMenu.tsx` — 編集・子タスク追加・削除メニュー
-- [ ] `src/components/TaskTree/TaskRow/TaskRow.tsx` — 1行分の表示レイアウト
+- [x] `src/components/Header/Header.tsx` — タイトル・エクスポートボタン
+- [x] `src/components/Header/ExportImportButton.tsx` — パネル開閉ボタン
+- [x] `src/components/TaskTree/TaskTree.tsx` — ルートタスク一覧 + タスク追加ボタン
+- [x] `src/components/TaskTree/TaskNode.tsx` — 再帰コンポーネント（子タスクを再帰的にレンダリング）
+- [x] `src/components/TaskTree/TaskRow/StatusBadge.tsx` — ステータス表示・クリックで変更
+- [x] `src/components/TaskTree/TaskRow/TimerButton.tsx` — タイマー開始/停止ボタン
+- [x] `src/components/TaskTree/TaskRow/ElapsedTime.tsx` — 実績時間の表示
+- [x] `src/components/TaskTree/TaskRow/TaskActionMenu.tsx` — 編集・子タスク追加・削除メニュー
+- [x] `src/components/TaskTree/TaskRow/TaskRow.tsx` — 1行分の表示レイアウト
 - [ ] `src/components/TaskFormModal/TaskNameInput.tsx` — タスク名入力
 - [ ] `src/components/TaskFormModal/DescriptionTextarea.tsx` — 説明入力
 - [ ] `src/components/TaskFormModal/StatusSelect.tsx` — ステータス選択
 - [ ] `src/components/TaskFormModal/TaskFormModal.tsx` — モーダル全体
-- [ ] `src/hooks/useExport.ts` — CSV/JSON エクスポート・インポート処理
-- [ ] `src/components/ExportImportPanel/ExportImportPanel.tsx` — エクスポート/インポート UI
+- [x] `src/hooks/useExport.ts` — CSV/JSON エクスポート・インポート処理
+- [x] `src/components/ExportImportPanel/ExportImportPanel.tsx` — エクスポート/インポート UI
 
 ---
 
