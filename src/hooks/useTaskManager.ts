@@ -1,10 +1,19 @@
 import { useTaskContext } from "../contexts/TaskContext";
-import type { Task, TaskStatus, CreateTaskParams, UpdateTaskParams } from "../types/task";
+import type {
+  Task,
+  TaskStatus,
+  CreateTaskParams,
+  UpdateTaskParams,
+} from "../types/task";
+import { TaskStateSchema } from "../schemas/task";
 import {
   countChildren,
   countRootTasks,
   getChildren,
   getDepth,
+  getDescendants,
+  getRootTasks,
+  getTask as getTaskById,
 } from "../utils/taskTree";
 
 export function useTaskManager() {
@@ -76,11 +85,75 @@ export function useTaskManager() {
     dispatch({ type: "CHANGE_STATUS", payload: { id, status } });
   }
 
+  /**
+   * JSONをバリデーションしてstateをインポートする
+   * バリデーション失敗時はエラーをスローする
+   */
+  function importState(json: string): void {
+    try {
+      const data = TaskStateSchema.parse(JSON.parse(json));
+      dispatch({ type: "IMPORT", payload: data });
+    } catch {
+      throw new Error("不正なファイル形式です");
+    }
+  }
+
+  /**
+   * 現在の state を JSON 文字列に変換してファイルダウンロードする
+   */
+  function exportState(): void {
+    const json = JSON.stringify(state, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "task-manager.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * 指定したIDのタスクを返す
+   * タスクが存在しない場合はエラーをスローする
+   */
+  function getTask(id: string): Task {
+    const task: Task | null = getTaskById(state.tasks, id);
+    if (!task) throw new Error("対象タスクが存在しません");
+    return task;
+  }
+
+  /**
+   * 指定した親タスクの子タスク一覧を返す
+   */
+  function getTaskChildren(parentId: string | null): Task[] {
+    return getChildren(state.tasks, parentId);
+  }
+
+  /**
+   * ルートタスク一覧を返す
+   */
+  function getTaskRoots(): Task[] {
+    return getRootTasks(state.tasks);
+  }
+
+  /**
+   * 指定したタスクの子孫タスクを全て返す
+   */
+  function getTaskDescendants(taskId: string): Task[] {
+    return getDescendants(state.tasks, taskId);
+  }
+
   return {
     tasks: state.tasks,
     addTask,
+    getTask,
     updateTask,
     deleteTask,
     changeStatus,
+    importState,
+    getTaskChildren,
+    getTaskRoots,
+    getTaskDescendants,
+    exportState,
   };
 }

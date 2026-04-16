@@ -1,6 +1,19 @@
 import type { Task } from "../types/task";
 
 /**
+ * 指定したIDを持つタスクを返す
+ * @param tasks タスクの配列
+ * @param id 対象タスクのID
+ * @returns 対象タスク(見つからない場合、nullを返す)
+ */
+export function getTask(tasks: Task[], id: string): Task | null {
+  const task: Task | undefined = tasks.find(
+    (task: { id: string }) => task.id === id,
+  );
+  return task ?? null;
+}
+
+/**
  * 指定した親IDを持つ子タスクの一覧を返す
  * @param tasks タスクの配列
  * @param parentId 親タスクのID（ルートタスクの場合はnull）

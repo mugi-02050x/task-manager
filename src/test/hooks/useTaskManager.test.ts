@@ -123,9 +123,13 @@ describe("useTaskManager", () => {
     });
     it("更新対象外のフィールドは変更されない", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
-      act(() => { result.current.addTask(rootParams); });
+      act(() => {
+        result.current.addTask(rootParams);
+      });
       const task = result.current.tasks[0];
-      act(() => { result.current.updateTask(task.id, updateParams); });
+      act(() => {
+        result.current.updateTask(task.id, updateParams);
+      });
       expect(result.current.tasks[0]).toMatchObject({
         id: task.id,
         parentId: task.parentId,
@@ -180,7 +184,9 @@ describe("useTaskManager", () => {
     it("存在しないタスクを削除してもエラーにならない", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       expect(() => {
-        act(() => { result.current.deleteTask("unknownId"); });
+        act(() => {
+          result.current.deleteTask("unknownId");
+        });
       }).not.toThrow();
     });
 
@@ -209,6 +215,133 @@ describe("useTaskManager", () => {
         result.current.manager.deleteTask(taskId);
       });
       expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+  });
+
+  describe("getTask", () => {
+    it("対象タスクが存在するとき、そのタスクを返す", () => {
+      const { result } = renderHook(() => useTaskManager(), { wrapper });
+      act(() => {
+        result.current.addTask(rootParams);
+      });
+
+      const taskId = result.current.tasks[0].id;
+      const task = result.current.getTask(taskId);
+
+      expect(task).toMatchObject(rootParams);
+    });
+
+    it("対象タスクが存在しないとき、エラーをスローする", () => {
+      const { result } = renderHook(() => useTaskManager(), { wrapper });
+      act(() => {
+        result.current.addTask(rootParams);
+      });
+
+      const taskId = "unknownId";
+
+      expect(() => {
+        act(() => {
+          result.current.getTask(taskId);
+        });
+      }).toThrow("対象タスクが存在しません");
+    });
+  });
+
+  describe("importState", () => {
+    it("正しいJSON文字列を渡すと、stateがインポートされる", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [
+          {
+            id: "task-1",
+            taskName: "タスク1",
+            description: "",
+            status: "WAITING",
+            parentId: null,
+            dispOrder: 1,
+            createdAt: new Date("2024-01-01"),
+          },
+        ],
+        trackRecords: [
+          {
+            id: "record-1",
+            taskId: "task-1",
+            startDatetime: new Date("2024-01-01T10:00:00"),
+            endDatetime: new Date("2024-01-01T11:00:00"),
+          },
+        ],
+      });
+
+      act(() => {
+        result.current.manager.importState(jsonStr);
+      });
+      expect(result.current.context.state.tasks).toHaveLength(1);
+      expect(result.current.context.state.trackRecords).toHaveLength(1);
+    });
+
+    it("不正なJSON文字列を渡すと、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        trackRecords: [
+          {
+            id: "task-1",
+            taskName: "タスク1",
+            description: "",
+            status: "WAITING",
+            parentId: null,
+            dispOrder: 1,
+            createdAt: new Date("2024-01-01"),
+          },
+        ],
+        tasks: [
+          {
+            id: "record-1",
+            taskId: "task-1",
+            startDatetime: new Date("2024-01-01T10:00:00"),
+            endDatetime: new Date("2024-01-01T11:00:00"),
+          },
+        ],
+      });
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+  });
+
+  describe("exportState", () => {
+    it("現在のstateをJSONファイルとしてダウンロードする", () => {
+      const { result } = renderHook(() => useTaskManager(), { wrapper });
+
+      // ブラウザAPIをモック
+      const mockClick = vi.fn();
+      const mockAnchor = { href: "", download: "", click: mockClick };
+      vi.spyOn(document, "createElement").mockReturnValue(
+        mockAnchor as unknown as HTMLElement,
+      );
+      vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
+      vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+      act(() => {
+        result.current.addTask(rootParams);
+      });
+      act(() => {
+        result.current.exportState();
+      });
+
+      expect(mockAnchor.download).toBe("task-manager.json");
+      expect(mockClick).toHaveBeenCalled();
+      expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
     });
   });
 

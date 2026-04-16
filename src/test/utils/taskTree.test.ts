@@ -2,17 +2,12 @@ import { describe, it, expect } from "vitest";
 import {
   getChildren,
   getDepth,
+  getTask,
   countChildren,
   getDescendants,
 } from "../../utils/taskTree";
 import type { Task } from "../../types/task";
 
-// 共通テストデータ
-// task-1 (root)
-//   task-2 (child of task-1)
-//     task-4 (child of task-2)
-//   task-3 (child of task-1)
-// task-5 (root)
 const tasks: Task[] = [
   {
     id: "task-1",
@@ -71,6 +66,16 @@ const tasks: Task[] = [
 ];
 
 describe("taskTree", () => {
+  describe("getTask", () => {
+    it("対象タスクが見つかるとき、そのタスクを返す", () => {
+      const task = getTask(tasks, "task-1");
+      expect(task).toMatchObject({ id: "task-1" });
+    });
+    it("対象タスクが見つからないとき、nullを返す", () => {
+      expect(getTask(tasks, "task-99")).toBeNull();
+    });
+  });
+
   describe("getChildren", () => {
     it("対象タスクが0件のとき、空のリストを返す", () => {
       const expect_val: Task[] = [];
