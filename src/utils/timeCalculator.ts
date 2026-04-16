@@ -1,24 +1,23 @@
 import type { TaskTrackRecord } from "../types/task";
 
 /**
- * 指定したタスクの実績時間の合計を返す
+ * 指定したタスクの実績時間の合計をミリ秒で返す
+ * フォーマットは呼び出し側で行う
  * @param trackRecords 実績レコードの配列
  * @param taskId 集計対象のタスクID
- * @returns 実績時間の合計をフォーマットした値
+ * @returns 実績時間の合計（ミリ秒）
  */
 function calcElapsed(
   trackRecords: Array<TaskTrackRecord>,
   taskId: string,
 ): number {
-  return formatElapsed(
-    trackRecords
-      .filter((record) => record.taskId === taskId)
-      .reduce((total, record) => {
-        return (
-          total + record.endDatetime.getTime() - record.startDatetime.getTime()
-        );
-      }, 0),
-  );
+  return trackRecords
+    .filter((record) => record.taskId === taskId)
+    .reduce((total, record) => {
+      return (
+        total + record.endDatetime.getTime() - record.startDatetime.getTime()
+      );
+    }, 0);
 }
 
 /**
