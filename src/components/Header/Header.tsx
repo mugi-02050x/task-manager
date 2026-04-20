@@ -23,6 +23,14 @@ const Header = () => {
     reader.readAsText(file);
   };
 
+  const handleClearState = () => {
+    const shouldClear = window.confirm(
+      "保存済みデータを削除して初期状態に戻します。よろしいですか？",
+    );
+    if (!shouldClear) return;
+    taskManager.clearState();
+  };
+
   return (
     <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/85 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 md:px-6">
@@ -39,6 +47,12 @@ const Header = () => {
           onChange={handleImport}
         />
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleClearState}
+            className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm font-medium text-rose-700 shadow-sm transition hover:bg-rose-100"
+          >
+            Clear
+          </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"

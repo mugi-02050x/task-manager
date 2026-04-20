@@ -31,4 +31,16 @@ describe("useLocalStorage", () => {
     });
     expect(localStorage.getItem(TEST_KEY)).toBe(JSON.stringify("updated"));
   });
+
+  it("removeValueを呼ぶと、stateをinitialValueに戻してlocalStorageから削除する", () => {
+    localStorage.setItem(TEST_KEY, JSON.stringify("saved"));
+    const { result } = renderHook(() => useLocalStorage(TEST_KEY, "initial"));
+
+    act(() => {
+      result.current[2]();
+    });
+
+    expect(result.current[0]).toBe("initial");
+    expect(localStorage.getItem(TEST_KEY)).toBeNull();
+  });
 });

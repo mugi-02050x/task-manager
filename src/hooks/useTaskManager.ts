@@ -30,7 +30,7 @@ export type SaveTaskParams =
     };
 
 export function useTaskManager() {
-  const { state, dispatch } = useTaskContext();
+  const { state, dispatch, clearState: clearTaskState } = useTaskContext();
 
   /**
    * タスクを追加する
@@ -137,6 +137,13 @@ export function useTaskManager() {
   }
 
   /**
+   * state を初期状態に戻し、localStorage に保存されたデータも削除する
+   */
+  function clearState(): void {
+    clearTaskState();
+  }
+
+  /**
    * 指定したIDのタスクを返す
    * タスクが存在しない場合はエラーをスローする
    */
@@ -176,6 +183,7 @@ export function useTaskManager() {
     deleteTask,
     changeStatus,
     importState,
+    clearState,
     getTaskChildren,
     getTaskRoots,
     getTaskDescendants,

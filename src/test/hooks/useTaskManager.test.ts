@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { TaskProvider, useTaskContext } from "../../contexts/TaskContext";
 import { useTaskManager } from "../../hooks/useTaskManager";
@@ -405,6 +405,29 @@ describe("useTaskManager", () => {
         result.current.changeStatus(taskId, "COMPLETED");
       });
       expect(result.current.tasks[0].status).toBe("COMPLETED");
+    });
+  });
+
+  describe("clearState", () => {
+    it("stateを初期化し、localStorageからも削除する", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+
+      act(() => {
+        result.current.manager.addTask(rootParams);
+      });
+      expect(result.current.manager.tasks).toHaveLength(1);
+      expect(localStorage.getItem("task-manager")).not.toBeNull();
+
+      act(() => {
+        result.current.manager.clearState();
+      });
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+      expect(localStorage.getItem("task-manager")).toBeNull();
     });
   });
 });

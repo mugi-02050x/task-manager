@@ -17,6 +17,11 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     [key],
   );
 
+  const removeValue = useCallback(() => {
+    setStoredValue(initialValue);
+    localStorage.removeItem(key);
+  }, [initialValue, key]);
+
   // as const により readonly [T, (value: T) => void] として型推論される
-  return [storedValue, setValue] as const;
+  return [storedValue, setValue, removeValue] as const;
 }
