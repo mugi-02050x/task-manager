@@ -31,8 +31,13 @@ const TaskActionMenu = ({
         return onEditTask(taskId);
       case "ADD_CHILD":
         return onAddChildTask(taskId);
-      case "DELETE":
+      case "DELETE": {
+        const shouldDelete = window.confirm(
+          "このタスクを削除します。子タスクと実績データも削除されます。よろしいですか？",
+        );
+        if (!shouldDelete) return;
         return taskManager.deleteTask(taskId);
+      }
       default:
         return;
     }
