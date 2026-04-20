@@ -1,13 +1,7 @@
 import { useState } from "react";
 import type { TaskFormInput, TaskStatus } from "../../types/task";
 import { handleAppError } from "../../utils/error";
-
-const STATUS_OPTIONS: TaskStatus[] = ["WAITING", "WORKING", "COMPLETED"];
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  WAITING: "未着手",
-  WORKING: "進行中",
-  COMPLETED: "完了",
-};
+import { STATUS_LABELS, STATUS_OPTIONS } from "../../constants/taskStatus";
 
 type TaskFormModalProps = {
   mode: "create" | "edit";

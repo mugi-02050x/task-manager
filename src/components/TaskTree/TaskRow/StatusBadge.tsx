@@ -1,26 +1,18 @@
 import { useState } from "react";
 import { useTaskOperations } from "../../../hooks/useTaskOperations";
 import type { TaskStatus } from "../../../types/task";
-
-const STATUS_LABELS: Record<TaskStatus, string> = {
-  WAITING: "未着手",
-  WORKING: "進行中",
-  COMPLETED: "完了",
-};
-
-const STATUS_OPTIONS: TaskStatus[] = ["WAITING", "WORKING", "COMPLETED"];
-const STATUS_STYLE: Record<TaskStatus, string> = {
-  WAITING: "border-slate-300 bg-slate-100 text-slate-700",
-  WORKING: "border-amber-200 bg-amber-100 text-amber-700",
-  COMPLETED: "border-emerald-200 bg-emerald-100 text-emerald-700",
-};
+import {
+  STATUS_BADGE_STYLE,
+  STATUS_LABELS,
+  STATUS_OPTIONS,
+} from "../../../constants/taskStatus";
 
 const StatusBadge = ({ taskId }: { taskId: string }) => {
   const taskOperations = useTaskOperations();
   const task = taskOperations.getTask(taskId);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const newStatus = e.target.value as TaskStatus;
     if (newStatus !== task.status) {
       taskOperations.changeStatus(taskId, newStatus);
@@ -49,7 +41,7 @@ const StatusBadge = ({ taskId }: { taskId: string }) => {
   return (
     <button
       onClick={() => setIsOpen(true)}
-      className={`h-8 w-auto min-w-[4.5rem] shrink-0 whitespace-nowrap rounded-md border px-2 py-1 text-xs font-medium ${STATUS_STYLE[task.status]}`}
+      className={`h-8 w-auto min-w-[4.5rem] shrink-0 whitespace-nowrap rounded-md border px-2 py-1 text-xs font-medium ${STATUS_BADGE_STYLE[task.status]}`}
     >
       {STATUS_LABELS[task.status]}
     </button>
