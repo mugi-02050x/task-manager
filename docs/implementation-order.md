@@ -39,10 +39,10 @@ Context Provider を上位に置き、上から順に組み立てる。
 - [x] `src/components/TaskTree/TaskRow/ElapsedTime.tsx` — 実績時間の表示
 - [x] `src/components/TaskTree/TaskRow/TaskActionMenu.tsx` — 編集・子タスク追加・削除メニュー
 - [x] `src/components/TaskTree/TaskRow/TaskRow.tsx` — 1行分の表示レイアウト
-- [ ] `src/components/TaskFormModal/TaskNameInput.tsx` — タスク名入力
-- [ ] `src/components/TaskFormModal/DescriptionTextarea.tsx` — 説明入力
-- [ ] `src/components/TaskFormModal/StatusSelect.tsx` — ステータス選択
-- [ ] `src/components/TaskFormModal/TaskFormModal.tsx` — モーダル全体
+- [x] `src/components/TaskFormModal/TaskNameInput.tsx` — タスク名入力
+- [x] `src/components/TaskFormModal/DescriptionTextarea.tsx` — 説明入力
+- [x] `src/components/TaskFormModal/StatusSelect.tsx` — ステータス選択
+- [x] `src/components/TaskFormModal/TaskFormModal.tsx` — モーダル全体
 - [x] `src/hooks/useExport.ts` — CSV/JSON エクスポート・インポート処理
 - [x] `src/components/ExportImportPanel/ExportImportPanel.tsx` — エクスポート/インポート UI
 

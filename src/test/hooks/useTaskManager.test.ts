@@ -2,7 +2,11 @@ import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { TaskProvider, useTaskContext } from "../../contexts/TaskContext";
 import { useTaskManager } from "../../hooks/useTaskManager";
-import type { CreateTaskParams, UpdateTaskParams } from "../../types/task";
+import type {
+  CreateTaskParams,
+  UpdateTaskParams,
+  TaskFormInput,
+} from "../../types/task";
 
 const wrapper = ({ children }: { children: React.ReactNode }) =>
   TaskProvider({ children });
@@ -18,6 +22,12 @@ const updateParams: UpdateTaskParams = {
   taskName: "タスク2",
   description: "説明2",
   status: "COMPLETED",
+};
+
+const formInput: TaskFormInput = {
+  taskName: "フォーム入力",
+  description: "フォーム説明",
+  status: "WORKING",
 };
 
 describe("useTaskManager", () => {
@@ -150,6 +160,45 @@ describe("useTaskManager", () => {
           result.current.updateTask("unknownId", { ...rootParams });
         });
       }).toThrow("更新対象が存在しません");
+    });
+  });
+
+  describe("saveTask", () => {
+    it("create モードではタスクが追加される", () => {
+      const { result } = renderHook(() => useTaskManager(), { wrapper });
+
+      act(() => {
+        result.current.saveTask({
+          mode: "create",
+          parentId: null,
+          input: formInput,
+        });
+      });
+
+      expect(result.current.tasks).toHaveLength(1);
+      expect(result.current.tasks[0]).toMatchObject({
+        ...formInput,
+        parentId: null,
+      });
+    });
+
+    it("edit モードでは既存タスクが更新される", () => {
+      const { result } = renderHook(() => useTaskManager(), { wrapper });
+      act(() => {
+        result.current.addTask(rootParams);
+      });
+      const taskId = result.current.tasks[0].id;
+
+      act(() => {
+        result.current.saveTask({
+          mode: "edit",
+          taskId,
+          input: formInput,
+        });
+      });
+
+      expect(result.current.tasks).toHaveLength(1);
+      expect(result.current.tasks[0]).toMatchObject(formInput);
     });
   });
 

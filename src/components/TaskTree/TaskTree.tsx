@@ -1,23 +1,45 @@
-import { useTaskManager } from "../../hooks/useTaskManager";
+import { useTaskFormModal } from "../../hooks/useTaskFormModal";
+import TaskFormModal from "../TaskFormModal/TaskFormModal";
 import TaskNode from "./TaskNode";
 
 const TaskTree = () => {
-  const taskManager = useTaskManager();
+  const {
+    taskRoots,
+    isModalOpen,
+    modalMode,
+    initialValue,
+    openCreateModal,
+    openEditModal,
+    closeModal,
+    submitTaskForm,
+  } = useTaskFormModal();
+
   return (
     <>
       <div className="flex justify-end">
-        {/* TODO: タスク追加モーダル実装後に反映 */}
-        <button onClick={() => alert("モーダルを開く")}>タスクを追加</button>
+        <button onClick={() => openCreateModal(null)}>タスクを追加</button>
       </div>
       <div>
         <ul>
-          {taskManager.getTaskRoots().map((rootTask) => (
+          {taskRoots.map((rootTask) => (
             <li key={rootTask.id}>
-              <TaskNode id={rootTask.id} />
+              <TaskNode
+                id={rootTask.id}
+                onEditTask={openEditModal}
+                onAddChildTask={openCreateModal}
+              />
             </li>
           ))}
         </ul>
       </div>
+      {isModalOpen && (
+        <TaskFormModal
+          mode={modalMode}
+          initialValue={initialValue}
+          onSubmit={submitTaskForm}
+          onClose={closeModal}
+        />
+      )}
     </>
   );
 };

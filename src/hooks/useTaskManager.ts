@@ -2,6 +2,7 @@ import { useTaskContext } from "../contexts/TaskContext";
 import type {
   Task,
   TaskStatus,
+  TaskFormInput,
   CreateTaskParams,
   UpdateTaskParams,
 } from "../types/task";
@@ -15,6 +16,18 @@ import {
   getRootTasks,
   getTask as getTaskById,
 } from "../utils/taskTree";
+
+export type SaveTaskParams =
+  | {
+      mode: "create";
+      parentId: string | null;
+      input: TaskFormInput;
+    }
+  | {
+      mode: "edit";
+      taskId: string;
+      input: TaskFormInput;
+    };
 
 export function useTaskManager() {
   const { state, dispatch } = useTaskContext();
@@ -59,6 +72,17 @@ export function useTaskManager() {
       status: params.status,
     };
     dispatch({ type: "UPDATE_TASK", payload: payload });
+  }
+
+  /**
+   * タスクフォーム送信時に新規作成 / 更新を分岐する
+   */
+  function saveTask(params: SaveTaskParams): void {
+    if (params.mode === "create") {
+      addTask({ ...params.input, parentId: params.parentId });
+      return;
+    }
+    updateTask(params.taskId, params.input);
   }
 
   /**
@@ -146,6 +170,7 @@ export function useTaskManager() {
   return {
     tasks: state.tasks,
     addTask,
+    saveTask,
     getTask,
     updateTask,
     deleteTask,

@@ -9,7 +9,17 @@ const ACTIONS = [
 
 type Action = (typeof ACTIONS)[number]["value"];
 
-const TaskActionMenu = ({ taskId }: { taskId: string }) => {
+type TaskActionMenuProps = {
+  taskId: string;
+  onEditTask: (taskId: string) => void;
+  onAddChildTask: (parentId: string) => void;
+};
+
+const TaskActionMenu = ({
+  taskId,
+  onEditTask,
+  onAddChildTask,
+}: TaskActionMenuProps) => {
   const taskManager = useTaskManager();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -18,13 +28,13 @@ const TaskActionMenu = ({ taskId }: { taskId: string }) => {
     setIsOpen(false);
     switch (action) {
       case "EDIT":
-        return alert("編集モーダルを開く");
+        return onEditTask(taskId);
       case "ADD_CHILD":
-        return alert("タスク追加モーダルを開く");
+        return onAddChildTask(taskId);
       case "DELETE":
         return taskManager.deleteTask(taskId);
       default:
-        return alert("モーダルを開く");
+        return;
     }
   };
 

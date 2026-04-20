@@ -70,18 +70,17 @@ type TaskAction =
   | ImportAction;
 
 // Params
-type CreateTaskParams = {
+type TaskFormInput = {
   taskName: string;
   description: string;
   status: TaskStatus;
+};
+
+type CreateTaskParams = TaskFormInput & {
   parentId: string | null;
 };
 
-type UpdateTaskParams = {
-  taskName: string;
-  description: string;
-  status: TaskStatus;
-};
+type UpdateTaskParams = TaskFormInput;
 
 export type {
   TaskStatus,
@@ -89,6 +88,7 @@ export type {
   TaskTrackRecord,
   TaskState,
   TaskAction,
+  TaskFormInput,
   CreateTaskParams,
   UpdateTaskParams,
 };

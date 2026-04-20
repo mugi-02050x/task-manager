@@ -3,7 +3,13 @@ import StatusBadge from "./StatusBadge";
 import TaskActionMenu from "./TaskActionMenu";
 import Timer from "./Timer";
 
-const TaskRow = ({ taskId }: { taskId: string }) => {
+type TaskRowProps = {
+  taskId: string;
+  onEditTask: (taskId: string) => void;
+  onAddChildTask: (parentId: string) => void;
+};
+
+const TaskRow = ({ taskId, onEditTask, onAddChildTask }: TaskRowProps) => {
   const taskManager = useTaskManager();
   const task = taskManager.getTask(taskId);
 
@@ -12,7 +18,11 @@ const TaskRow = ({ taskId }: { taskId: string }) => {
       <span>{task.taskName}</span>
       <StatusBadge taskId={taskId} />
       <Timer taskId={taskId} />
-      <TaskActionMenu taskId={taskId} />
+      <TaskActionMenu
+        taskId={taskId}
+        onEditTask={onEditTask}
+        onAddChildTask={onAddChildTask}
+      />
     </div>
   );
 };
