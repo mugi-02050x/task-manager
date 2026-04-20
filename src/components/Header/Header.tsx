@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { useTaskManager } from "../../hooks/useTaskManager";
+import { handleAppError } from "../../utils/error";
 
 const Header = () => {
   const taskManager = useTaskManager();
@@ -22,8 +23,9 @@ const Header = () => {
       try {
         const json = event.target?.result as string;
         taskManager.importState(json);
-      } catch {
-        alert(
+      } catch (error: unknown) {
+        handleAppError(
+          error,
           "ファイルの読み込みに失敗しました。正しいファイルを選択してください。",
         );
       } finally {

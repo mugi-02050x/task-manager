@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { TaskFormInput, TaskStatus } from "../../types/task";
+import { handleAppError } from "../../utils/error";
 
 const STATUS_OPTIONS: TaskStatus[] = ["WAITING", "WORKING", "COMPLETED"];
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -29,7 +30,7 @@ const TaskFormModal = ({
     e.preventDefault();
     const normalizedName = taskName.trim();
     if (!normalizedName) {
-      alert("タスク名を入力してください");
+      handleAppError(new Error("タスク名を入力してください"));
       return;
     }
     onSubmit({

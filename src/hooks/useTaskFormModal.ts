@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { TaskFormInput } from "../types/task";
 import { useTaskManager } from "./useTaskManager";
+import { handleAppError } from "../utils/error";
 
 type ModalState =
   | { isOpen: false }
@@ -25,10 +26,8 @@ export function useTaskFormModal() {
     try {
       taskManager.getTask(taskId);
       setModalState({ isOpen: true, mode: "edit", taskId });
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "対象タスクが存在しません";
-      alert(message);
+    } catch (error: unknown) {
+      handleAppError(error, "対象タスクが存在しません");
     }
   };
 
@@ -53,10 +52,8 @@ export function useTaskFormModal() {
         });
       }
       closeModal();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "タスクの保存に失敗しました";
-      alert(message);
+    } catch (error: unknown) {
+      handleAppError(error, "タスクの保存に失敗しました");
     }
   };
 
