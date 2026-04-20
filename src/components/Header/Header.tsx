@@ -9,6 +9,14 @@ const Header = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const shouldImport = window.confirm(
+      "インポートすると現在のデータは上書きされます。続行しますか？",
+    );
+    if (!shouldImport) {
+      e.target.value = "";
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -18,6 +26,8 @@ const Header = () => {
         alert(
           "ファイルの読み込みに失敗しました。正しいファイルを選択してください。",
         );
+      } finally {
+        e.target.value = "";
       }
     };
     reader.readAsText(file);

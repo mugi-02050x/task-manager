@@ -126,12 +126,22 @@ export function useTaskManager() {
    * 現在の state を JSON 文字列に変換してファイルダウンロードする
    */
   function exportState(): void {
+    const now = new Date();
+    const timestamp = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0"),
+      "-",
+      String(now.getHours()).padStart(2, "0"),
+      String(now.getMinutes()).padStart(2, "0"),
+      String(now.getSeconds()).padStart(2, "0"),
+    ].join("");
     const json = JSON.stringify(state, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "task-manager.json";
+    a.download = `task-manager-export-${timestamp}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }

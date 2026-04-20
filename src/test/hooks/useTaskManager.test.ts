@@ -380,6 +380,8 @@ describe("useTaskManager", () => {
       );
       vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-url");
       vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-04-20T12:45:00"));
 
       act(() => {
         result.current.addTask(rootParams);
@@ -388,9 +390,12 @@ describe("useTaskManager", () => {
         result.current.exportState();
       });
 
-      expect(mockAnchor.download).toBe("task-manager.json");
+      expect(mockAnchor.download).toBe(
+        "task-manager-export-20260420-124500.json",
+      );
       expect(mockClick).toHaveBeenCalled();
       expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock-url");
+      vi.useRealTimers();
     });
   });
 
