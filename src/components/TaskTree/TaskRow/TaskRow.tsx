@@ -6,22 +6,45 @@ import Timer from "./Timer";
 
 type TaskRowProps = {
   taskId: string;
+  hasChildren: boolean;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
   onEditTask: (taskId: string) => void;
   onAddChildTask: (parentId: string) => void;
 };
 
-const TaskRow = ({ taskId, onEditTask, onAddChildTask }: TaskRowProps) => {
+const TaskRow = ({
+  taskId,
+  hasChildren,
+  isExpanded,
+  onToggleExpand,
+  onEditTask,
+  onAddChildTask,
+}: TaskRowProps) => {
   const taskManager = useTaskManager();
   const task = taskManager.getTask(taskId);
-  const hasChildren = taskManager.getTaskChildren(taskId).length > 0;
   const elapsed = useElapsed(taskId).toFixed(2);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs md:flex md:items-center md:gap-3">
       <div className="flex items-start justify-between gap-2 md:flex-1">
-        <p className="min-w-0 flex-1 break-all text-sm font-medium text-slate-900 md:text-base">
-          {task.taskName}
-        </p>
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={onToggleExpand}
+              className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-300 bg-white text-xs text-slate-600 transition hover:bg-slate-100"
+              aria-label={isExpanded ? "子タスクを折りたたむ" : "子タスクを展開する"}
+            >
+              {isExpanded ? "▼" : "▶"}
+            </button>
+          ) : (
+            <span className="mt-0.5 inline-block h-6 w-6 shrink-0" aria-hidden />
+          )}
+          <p className="min-w-0 flex-1 break-all text-sm font-medium text-slate-900 md:text-base">
+            {task.taskName}
+          </p>
+        </div>
         <div className="md:hidden">
           <TaskActionMenu
             taskId={taskId}
