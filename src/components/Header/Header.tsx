@@ -24,9 +24,13 @@ const Header = () => {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-2">
-      <span>TaskManager</span>
-      <div className="flex gap-2">
+    <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/85 backdrop-blur">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 md:px-6">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight text-slate-900">
+            Task Manager
+          </h1>
+        </div>
         <input
           type="file"
           accept=".json"
@@ -34,8 +38,20 @@ const Header = () => {
           style={{ display: "none" }}
           onChange={handleImport}
         />
-        <button onClick={() => fileInputRef.current?.click()}>Import</button>
-        <button onClick={taskManager.exportState}>Export</button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Import
+          </button>
+          <button
+            onClick={taskManager.exportState}
+            className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700"
+          >
+            Export
+          </button>
+        </div>
       </div>
     </header>
   );

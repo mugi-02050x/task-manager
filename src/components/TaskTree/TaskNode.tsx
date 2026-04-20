@@ -10,6 +10,8 @@ type TaskNodeProps = {
 const TaskNode = ({ id, onEditTask, onAddChildTask }: TaskNodeProps) => {
   const taskManager = useTaskManager();
   const task = taskManager.getTask(id);
+  const children = taskManager.getTaskChildren(task.id);
+
   return (
     <>
       <TaskRow
@@ -17,17 +19,19 @@ const TaskNode = ({ id, onEditTask, onAddChildTask }: TaskNodeProps) => {
         onEditTask={onEditTask}
         onAddChildTask={onAddChildTask}
       />
-      <ul className="ml-8 border-l border-gray-300 pl-2">
-        {taskManager.getTaskChildren(task.id).map((childTask) => (
-          <li key={childTask.id}>
-            <TaskNode
-              id={childTask.id}
-              onEditTask={onEditTask}
-              onAddChildTask={onAddChildTask}
-            />
-          </li>
-        ))}
-      </ul>
+      {children.length > 0 && (
+        <ul className="mt-2 ml-2 space-y-2 border-l border-slate-300 pl-2 md:ml-5 md:pl-4">
+          {children.map((childTask) => (
+            <li key={childTask.id}>
+              <TaskNode
+                id={childTask.id}
+                onEditTask={onEditTask}
+                onAddChildTask={onAddChildTask}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 };

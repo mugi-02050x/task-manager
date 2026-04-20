@@ -45,6 +45,7 @@ const TaskActionMenu = ({
         onChange={handleChange}
         onBlur={() => setIsOpen(false)}
         autoFocus
+        className="h-8 w-[7rem] shrink-0 whitespace-nowrap rounded-md border border-slate-300 bg-white px-2 py-1 text-center text-xs text-slate-700 shadow-sm focus:border-sky-500 focus:outline-none"
       >
         <option value="" disabled>
           操作を選択
@@ -58,7 +59,15 @@ const TaskActionMenu = ({
     );
   }
 
-  return <button onClick={() => setIsOpen(true)}>...</button>;
+  return (
+    <button
+      onClick={() => setIsOpen(true)}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white text-base font-medium leading-none text-slate-600 transition hover:bg-slate-100"
+      aria-label="タスク操作を開く"
+    >
+      ⋮
+    </button>
+  );
 };
 
 export default TaskActionMenu;
