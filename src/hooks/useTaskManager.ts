@@ -186,10 +186,8 @@ export function useTaskManager() {
 
   return {
     tasks: state.tasks,
-    addTask,
     saveTask,
     getTask,
-    updateTask,
     deleteTask,
     changeStatus,
     importState,

@@ -23,22 +23,27 @@ export function useTimer() {
    * 15分未満の場合は trackRecord を保存しない
    */
   function stop(): void {
+    const endDatetime = new Date();
+    const elapsedMs = startedAt
+      ? endDatetime.getTime() - startedAt.getTime()
+      : 0;
+
     // formatElapsed は 0.25h（15分）単位に切り捨てて返す
     // 15分未満の場合は 0 が返るため、0より大きい場合のみ trackRecord を保存する
-    if (
-      runningTaskId &&
-      startedAt &&
-      formatElapsed(Date.now() - startedAt.getTime()) > 0
-    ) {
+    if (runningTaskId && startedAt && formatElapsed(elapsedMs) > 0) {
       const payload: TaskTrackRecord = {
         id: crypto.randomUUID(),
         taskId: runningTaskId,
         startDatetime: startedAt,
-        endDatetime: new Date(),
+        endDatetime,
       };
       dispatch({ type: "ADD_TRACK_RECORD", payload: payload });
     }
 
+    reset();
+  }
+
+  function reset(): void {
     setRunningTaskId(null);
     setStartedAt(null);
   }
@@ -48,5 +53,6 @@ export function useTimer() {
     startedAt,
     start,
     stop,
+    reset,
   };
 }

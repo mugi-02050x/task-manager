@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTaskManager } from "../../../hooks/useTaskManager";
+import { useTaskOperations } from "../../../hooks/useTaskOperations";
 import type { TaskStatus } from "../../../types/task";
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -16,14 +16,14 @@ const STATUS_STYLE: Record<TaskStatus, string> = {
 };
 
 const StatusBadge = ({ taskId }: { taskId: string }) => {
-  const taskManager = useTaskManager();
-  const task = taskManager.getTask(taskId);
+  const taskOperations = useTaskOperations();
+  const task = taskOperations.getTask(taskId);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value as TaskStatus;
     if (newStatus !== task.status) {
-      taskManager.changeStatus(taskId, newStatus);
+      taskOperations.changeStatus(taskId, newStatus);
     }
     setIsOpen(false);
   };

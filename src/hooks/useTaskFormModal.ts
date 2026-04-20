@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { TaskFormInput } from "../types/task";
-import { useTaskManager } from "./useTaskManager";
+import { useTaskOperations } from "./useTaskOperations";
 import { handleAppError } from "../utils/error";
 
 type ModalState =
@@ -15,7 +15,7 @@ const DEFAULT_FORM_VALUE: TaskFormInput = {
 };
 
 export function useTaskFormModal() {
-  const taskManager = useTaskManager();
+  const taskOperations = useTaskOperations();
   const [modalState, setModalState] = useState<ModalState>({ isOpen: false });
 
   const openCreateModal = (parentId: string | null) => {
@@ -24,7 +24,7 @@ export function useTaskFormModal() {
 
   const openEditModal = (taskId: string) => {
     try {
-      taskManager.getTask(taskId);
+      taskOperations.getTask(taskId);
       setModalState({ isOpen: true, mode: "edit", taskId });
     } catch (error: unknown) {
       handleAppError(error, "対象タスクが存在しません");
@@ -39,13 +39,13 @@ export function useTaskFormModal() {
     if (!modalState.isOpen) return;
     try {
       if (modalState.mode === "create") {
-        taskManager.saveTask({
+        taskOperations.saveTask({
           mode: "create",
           parentId: modalState.parentId,
           input,
         });
       } else {
-        taskManager.saveTask({
+        taskOperations.saveTask({
           mode: "edit",
           taskId: modalState.taskId,
           input,
@@ -57,22 +57,24 @@ export function useTaskFormModal() {
     }
   };
 
-  let initialValue: TaskFormInput = DEFAULT_FORM_VALUE;
-  let modalMode: "create" | "edit" = "create";
-  if (modalState.isOpen) {
-    modalMode = modalState.mode;
-    if (modalState.mode === "edit") {
-      const editingTask = taskManager.getTask(modalState.taskId);
-      initialValue = {
+  const editingTask =
+    modalState.isOpen && modalState.mode === "edit"
+      ? taskOperations.getTask(modalState.taskId)
+      : null;
+
+  const modalMode: "create" | "edit" =
+    modalState.isOpen ? modalState.mode : "create";
+
+  const initialValue: TaskFormInput = editingTask
+    ? {
         taskName: editingTask.taskName,
         description: editingTask.description,
         status: editingTask.status,
-      };
-    }
-  }
+      }
+    : DEFAULT_FORM_VALUE;
 
   return {
-    taskRoots: taskManager.getTaskRoots(),
+    taskRoots: taskOperations.getTaskRoots(),
     isModalOpen: modalState.isOpen,
     modalMode,
     initialValue,

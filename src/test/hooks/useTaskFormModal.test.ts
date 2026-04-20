@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { TaskProvider } from "../../contexts/TaskContext";
+import { TimerProvider } from "../../contexts/TimerContext";
 import { useTaskFormModal } from "../../hooks/useTaskFormModal";
 import { useTaskManager } from "../../hooks/useTaskManager";
 import type { CreateTaskParams, TaskFormInput } from "../../types/task";
 
-const wrapper = ({ children }: { children: React.ReactNode }) =>
-  TaskProvider({ children });
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  TaskProvider({ children: TimerProvider({ children }) })
+);
 
 const createParams: CreateTaskParams = {
   taskName: "既存タスク",
@@ -78,7 +80,15 @@ describe("useTaskFormModal", () => {
     );
 
     act(() => {
-      result.current.manager.addTask(createParams);
+      result.current.manager.saveTask({
+        mode: "create",
+        parentId: createParams.parentId,
+        input: {
+          taskName: createParams.taskName,
+          description: createParams.description,
+          status: createParams.status,
+        },
+      });
     });
     const taskId = result.current.manager.tasks[0].id;
 
@@ -102,17 +112,28 @@ describe("useTaskFormModal", () => {
     );
 
     act(() => {
-      result.current.manager.addTask(createParams);
+      result.current.manager.saveTask({
+        mode: "create",
+        parentId: createParams.parentId,
+        input: {
+          taskName: createParams.taskName,
+          description: createParams.description,
+          status: createParams.status,
+        },
+      });
     });
     const parentId = result.current.manager.tasks[0].id;
 
     for (let i = 0; i < 20; i++) {
       act(() => {
-        result.current.manager.addTask({
-          taskName: `子タスク${i + 1}`,
-          description: "説明",
-          status: "WAITING",
+        result.current.manager.saveTask({
+          mode: "create",
           parentId,
+          input: {
+            taskName: `子タスク${i + 1}`,
+            description: "説明",
+            status: "WAITING",
+          },
         });
       });
     }

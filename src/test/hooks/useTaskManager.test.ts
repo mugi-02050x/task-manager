@@ -31,12 +31,43 @@ const formInput: TaskFormInput = {
   status: "WORKING",
 };
 
+function createTask(
+  manager: ReturnType<typeof useTaskManager>,
+  params: CreateTaskParams,
+): void {
+  manager.saveTask({
+    mode: "create",
+    parentId: params.parentId,
+    input: {
+      taskName: params.taskName,
+      description: params.description,
+      status: params.status,
+    },
+  });
+}
+
+function updateTask(
+  manager: ReturnType<typeof useTaskManager>,
+  id: string,
+  params: UpdateTaskParams,
+): void {
+  manager.saveTask({
+    mode: "edit",
+    taskId: id,
+    input: {
+      taskName: params.taskName,
+      description: params.description,
+      status: params.status,
+    },
+  });
+}
+
 describe("useTaskManager", () => {
   describe("addTask", () => {
     it("タスクを追加すると tasks に追加される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       expect(result.current.tasks).toHaveLength(1);
       expect(result.current.tasks[0]).toMatchObject(rootParams);
@@ -47,10 +78,10 @@ describe("useTaskManager", () => {
       // act を分けることで、1回目の addTask の state 更新が完了してから
       // 2回目の addTask が実行される（同一 act 内では state が更新されないため）
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       expect(result.current.tasks[0].dispOrder).toBe(1);
       expect(result.current.tasks[1].dispOrder).toBe(2);
@@ -59,16 +90,16 @@ describe("useTaskManager", () => {
     it("子タスクの dispOrder は既存の子タスク件数 + 1 になる", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const parentId = result.current.tasks[0].id;
       // act を分けることで、1回目の addTask の state 更新が完了してから
       // 2回目の addTask が実行される（同一 act 内では state が更新されないため）
       act(() => {
-        result.current.addTask({ ...rootParams, parentId });
+        createTask(result.current, { ...rootParams, parentId });
       });
       act(() => {
-        result.current.addTask({ ...rootParams, parentId });
+        createTask(result.current, { ...rootParams, parentId });
       });
       const children = result.current.tasks.filter(
         (t) => t.parentId === parentId,
@@ -81,19 +112,19 @@ describe("useTaskManager", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       // 5階層のタスクを作成
       act(() => {
-        result.current.addTask(rootParams); // 深さ1
+        createTask(result.current, rootParams); // 深さ1
       });
       let parentId = result.current.tasks[0].id;
       for (let i = 0; i < 4; i++) {
         act(() => {
-          result.current.addTask({ ...rootParams, parentId });
+          createTask(result.current, { ...rootParams, parentId });
         });
         parentId = result.current.tasks[result.current.tasks.length - 1].id;
       }
       // 深さ6になる子タスクの追加でエラー
       expect(() => {
         act(() => {
-          result.current.addTask({ ...rootParams, parentId });
+          createTask(result.current, { ...rootParams, parentId });
         });
       }).toThrow("タスク階層の上限を超えています");
     });
@@ -101,18 +132,18 @@ describe("useTaskManager", () => {
     it("子タスクが20件のとき、子タスクの追加でエラーになる", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const parentId = result.current.tasks[0].id;
       // 20件の子タスクを追加
       act(() => {
         for (let i = 0; i < 20; i++) {
-          result.current.addTask({ ...rootParams, parentId });
+          createTask(result.current, { ...rootParams, parentId });
         }
       });
       expect(() => {
         act(() => {
-          result.current.addTask({ ...rootParams, parentId });
+          createTask(result.current, { ...rootParams, parentId });
         });
       }).toThrow("子タスクの上限を超えています");
     });
@@ -122,11 +153,11 @@ describe("useTaskManager", () => {
     it("タスクを更新すると tasks が更新される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const taskId = result.current.tasks[0].id;
       act(() => {
-        result.current.updateTask(taskId, updateParams);
+        updateTask(result.current, taskId, updateParams);
       });
 
       expect(result.current.tasks).toHaveLength(1);
@@ -135,11 +166,11 @@ describe("useTaskManager", () => {
     it("更新対象外のフィールドは変更されない", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const task = result.current.tasks[0];
       act(() => {
-        result.current.updateTask(task.id, updateParams);
+        updateTask(result.current, task.id, updateParams);
       });
       expect(result.current.tasks[0]).toMatchObject({
         id: task.id,
@@ -154,11 +185,11 @@ describe("useTaskManager", () => {
       // act を分けることで、1回目の addTask の state 更新が完了してから
       // 2回目の addTask が実行される（同一 act 内では state が更新されないため）
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       expect(() => {
         act(() => {
-          result.current.updateTask("unknownId", { ...rootParams });
+          updateTask(result.current, "unknownId", { ...rootParams });
         });
       }).toThrow("更新対象が存在しません");
     });
@@ -186,7 +217,7 @@ describe("useTaskManager", () => {
     it("edit モードでは既存タスクが更新される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const taskId = result.current.tasks[0].id;
 
@@ -207,7 +238,7 @@ describe("useTaskManager", () => {
     it("タスクを削除すると tasks から削除される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const taskId = result.current.tasks[0].id;
       act(() => {
@@ -219,11 +250,11 @@ describe("useTaskManager", () => {
     it("子タスクが存在するとき、子タスクも合わせて削除される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const parentId = result.current.tasks[0].id;
       act(() => {
-        result.current.addTask({ ...rootParams, parentId });
+        createTask(result.current, { ...rootParams, parentId });
       });
       act(() => {
         result.current.deleteTask(parentId);
@@ -246,7 +277,7 @@ describe("useTaskManager", () => {
         { wrapper },
       );
       act(() => {
-        result.current.manager.addTask(rootParams);
+        createTask(result.current.manager, rootParams);
       });
       const taskId = result.current.manager.tasks[0].id;
       // trackRecord を直接 dispatch で追加
@@ -272,7 +303,7 @@ describe("useTaskManager", () => {
     it("対象タスクが存在するとき、そのタスクを返す", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
 
       const taskId = result.current.tasks[0].id;
@@ -284,7 +315,7 @@ describe("useTaskManager", () => {
     it("対象タスクが存在しないとき、エラーをスローする", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
 
       const taskId = "unknownId";
@@ -385,7 +416,7 @@ describe("useTaskManager", () => {
       vi.setSystemTime(new Date("2026-04-20T12:45:00"));
 
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       act(() => {
         result.current.exportState();
@@ -404,7 +435,7 @@ describe("useTaskManager", () => {
     it("ステータスを変更すると tasks のステータスが更新される", () => {
       const { result } = renderHook(() => useTaskManager(), { wrapper });
       act(() => {
-        result.current.addTask(rootParams);
+        createTask(result.current, rootParams);
       });
       const taskId = result.current.tasks[0].id;
       act(() => {
@@ -422,7 +453,7 @@ describe("useTaskManager", () => {
       );
 
       act(() => {
-        result.current.manager.addTask(rootParams);
+        createTask(result.current.manager, rootParams);
       });
       expect(result.current.manager.tasks).toHaveLength(1);
 

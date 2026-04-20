@@ -1,9 +1,9 @@
 import { useRef } from "react";
-import { useTaskManager } from "../../hooks/useTaskManager";
+import { useTaskOperations } from "../../hooks/useTaskOperations";
 import { handleAppError } from "../../utils/error";
 
 const Header = () => {
-  const taskManager = useTaskManager();
+  const taskOperations = useTaskOperations();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +22,7 @@ const Header = () => {
     reader.onload = (event) => {
       try {
         const json = event.target?.result as string;
-        taskManager.importState(json);
+        taskOperations.importState(json);
       } catch (error: unknown) {
         handleAppError(
           error,
@@ -40,7 +40,7 @@ const Header = () => {
       "保存済みデータを削除して初期状態に戻します。よろしいですか？",
     );
     if (!shouldClear) return;
-    taskManager.clearState();
+    taskOperations.clearState();
   };
 
   return (
@@ -72,7 +72,7 @@ const Header = () => {
             Import
           </button>
           <button
-            onClick={taskManager.exportState}
+            onClick={taskOperations.exportState}
             className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700"
           >
             Export

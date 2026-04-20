@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTaskManager } from "../../../hooks/useTaskManager";
+import { useTaskOperations } from "../../../hooks/useTaskOperations";
 
 const ACTIONS = [
   { value: "EDIT", label: "編集" },
@@ -20,7 +20,7 @@ const TaskActionMenu = ({
   onEditTask,
   onAddChildTask,
 }: TaskActionMenuProps) => {
-  const taskManager = useTaskManager();
+  const taskOperations = useTaskOperations();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -36,7 +36,7 @@ const TaskActionMenu = ({
           "このタスクを削除します。子タスクと実績データも削除されます。よろしいですか？",
         );
         if (!shouldDelete) return;
-        return taskManager.deleteTask(taskId);
+        return taskOperations.deleteTask(taskId);
       }
       default:
         return;
