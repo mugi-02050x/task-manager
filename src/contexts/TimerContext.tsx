@@ -1,13 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-
-type TimerContextType = {
-  runningTaskId: string | null;
-  startedAt: Date | null;
-  setRunningTaskId: (id: string | null) => void;
-  setStartedAt: (date: Date | null) => void;
-};
-
-const TimerContext = createContext<TimerContextType | null>(null);
+import { useState, type ReactNode } from "react";
+import { TimerContext } from "./timerContextStore";
 
 type TimerProviderProps = {
   children: ReactNode;
@@ -26,10 +18,4 @@ function TimerProvider({ children }: TimerProviderProps) {
   );
 }
 
-function useTimerContext() {
-  const context = useContext(TimerContext);
-  if (!context) throw new Error("TimerProvider の外で使われています");
-  return context;
-}
-
-export { TimerProvider, useTimerContext };
+export { TimerProvider };

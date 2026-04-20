@@ -1,18 +1,11 @@
-import { createContext, useContext, useEffect, useReducer, useRef } from "react";
-import type { Dispatch, ReactNode } from "react";
+import { useEffect, useReducer, useRef } from "react";
+import type { ReactNode } from "react";
 import { reducer, initialState } from "../reducers/taskReducer";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { TaskStateSchema } from "../schemas/task";
-import type { TaskState, TaskAction } from "../types/task";
+import type { TaskState } from "../types/task";
 import { APP_SETTINGS } from "../config/appSettings";
-
-type TaskContextType = {
-  state: TaskState;
-  dispatch: Dispatch<TaskAction>;
-  clearState: () => void;
-};
-
-const TaskContext = createContext<TaskContextType | null>(null);
+import { TaskContext } from "./taskContextStore";
 
 type TaskProviderProps = {
   children: ReactNode;
@@ -57,10 +50,4 @@ function TaskProvider({ children }: TaskProviderProps) {
   );
 }
 
-function useTaskContext() {
-  const context = useContext(TaskContext);
-  if (!context) throw new Error("TaskProvider の外で使われています");
-  return context;
-}
-
-export { TaskProvider, useTaskContext };
+export { TaskProvider };

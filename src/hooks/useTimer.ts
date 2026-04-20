@@ -1,5 +1,5 @@
-import { useTaskContext } from "../contexts/TaskContext";
-import { useTimerContext } from "../contexts/TimerContext";
+import { useTaskContext } from "./useTaskContext";
+import { useTimerContext } from "./useTimerContext";
 import type { TaskTrackRecord } from "../types/task";
 import { formatElapsed } from "../utils/timeCalculator";
 

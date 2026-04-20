@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { TaskProvider, useTaskContext } from "../../contexts/TaskContext";
+import { TaskProvider } from "../../contexts/TaskContext";
+import { useTaskContext } from "../../hooks/useTaskContext";
 import type { Task } from "../../types/task";
 
 // renderHook の wrapper オプションで TaskProvider でラップする

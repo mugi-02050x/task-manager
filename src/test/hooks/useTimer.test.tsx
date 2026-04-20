@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { TaskProvider, useTaskContext } from "../../contexts/TaskContext";
+import { TaskProvider } from "../../contexts/TaskContext";
 import { TimerProvider } from "../../contexts/TimerContext";
+import { useTaskContext } from "../../hooks/useTaskContext";
 import { useTimer } from "../../hooks/useTimer";
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (

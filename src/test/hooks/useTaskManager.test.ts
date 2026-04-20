@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { TaskProvider, useTaskContext } from "../../contexts/TaskContext";
+import { TaskProvider } from "../../contexts/TaskContext";
+import { useTaskContext } from "../../hooks/useTaskContext";
 import { useTaskManager } from "../../hooks/useTaskManager";
 import type {
   CreateTaskParams,
