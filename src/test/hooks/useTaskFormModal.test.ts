@@ -93,4 +93,38 @@ describe("useTaskFormModal", () => {
     expect(result.current.manager.tasks).toHaveLength(1);
     expect(result.current.manager.tasks[0]).toMatchObject(formInput);
   });
+
+  it("submitTaskForm で保存失敗した場合はエラー通知してモーダルを閉じない", () => {
+    const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
+    const { result } = renderHook(
+      () => ({ modal: useTaskFormModal(), manager: useTaskManager() }),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.manager.addTask(createParams);
+    });
+    const parentId = result.current.manager.tasks[0].id;
+
+    for (let i = 0; i < 20; i++) {
+      act(() => {
+        result.current.manager.addTask({
+          taskName: `子タスク${i + 1}`,
+          description: "説明",
+          status: "WAITING",
+          parentId,
+        });
+      });
+    }
+
+    act(() => {
+      result.current.modal.openCreateModal(parentId);
+    });
+    act(() => {
+      result.current.modal.submitTaskForm(formInput);
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith("子タスクの上限を超えています");
+    expect(result.current.modal.isModalOpen).toBe(true);
+  });
 });
