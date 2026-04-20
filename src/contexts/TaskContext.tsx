@@ -4,6 +4,7 @@ import { reducer, initialState } from "../reducers/taskReducer";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { TaskStateSchema } from "../schemas/task";
 import type { TaskState, TaskAction } from "../types/task";
+import { APP_SETTINGS } from "../config/appSettings";
 
 type TaskContextType = {
   state: TaskState;
@@ -21,6 +22,7 @@ function TaskProvider({ children }: TaskProviderProps) {
   const [storedState, setStoredState, removeStoredState] = useLocalStorage<TaskState>(
     "task-manager",
     initialState,
+    { enabled: APP_SETTINGS.enableLocalStoragePersist },
   );
   const skipNextPersistRef = useRef(false);
   // useReducer の第3引数（initializer）で zod スキーマを通し、

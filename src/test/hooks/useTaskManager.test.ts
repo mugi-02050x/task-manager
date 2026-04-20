@@ -424,7 +424,6 @@ describe("useTaskManager", () => {
         result.current.manager.addTask(rootParams);
       });
       expect(result.current.manager.tasks).toHaveLength(1);
-      expect(localStorage.getItem("task-manager")).not.toBeNull();
 
       act(() => {
         result.current.manager.clearState();
