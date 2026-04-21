@@ -7,6 +7,8 @@ import type {
   CreateTaskParams,
   UpdateTaskParams,
   TaskFormInput,
+  Task,
+  TaskTrackRecord,
 } from "../../types/task";
 
 const wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -30,6 +32,31 @@ const formInput: TaskFormInput = {
   description: "フォーム説明",
   status: "WORKING",
 };
+
+function buildImportTask(overrides: Partial<Task> & Pick<Task, "id">): Task {
+  return {
+    taskName: "インポートタスク",
+    description: "",
+    status: "WAITING",
+    parentId: null,
+    dispOrder: 1,
+    createdAt: new Date("2024-01-01"),
+    ...overrides,
+    id: overrides.id,
+  };
+}
+
+function buildImportTrackRecord(
+  overrides: Partial<TaskTrackRecord> & Pick<TaskTrackRecord, "id" | "taskId">,
+): TaskTrackRecord {
+  return {
+    startDatetime: new Date("2024-01-01T10:00:00"),
+    endDatetime: new Date("2024-01-01T11:00:00"),
+    ...overrides,
+    id: overrides.id,
+    taskId: overrides.taskId,
+  };
+}
 
 function createTask(
   manager: ReturnType<typeof useTaskManager>,
@@ -389,6 +416,216 @@ describe("useTaskManager", () => {
           },
         ],
       });
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("タスクの親子関係が循環しているとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [
+          {
+            id: "task-1",
+            taskName: "タスク1",
+            description: "",
+            status: "WAITING",
+            parentId: "task-2",
+            dispOrder: 1,
+            createdAt: new Date("2024-01-01"),
+          },
+          {
+            id: "task-2",
+            taskName: "タスク2",
+            description: "",
+            status: "WAITING",
+            parentId: "task-1",
+            dispOrder: 1,
+            createdAt: new Date("2024-01-01"),
+          },
+        ],
+        trackRecords: [],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("タスクIDが重複しているとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [
+          buildImportTask({ id: "task-1" }),
+          buildImportTask({ id: "task-1", taskName: "重複タスク" }),
+        ],
+        trackRecords: [],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("存在しない親タスクを参照しているとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [buildImportTask({ id: "task-1", parentId: "unknown-task" })],
+        trackRecords: [],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("階層が6以上のとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [
+          buildImportTask({ id: "task-1" }),
+          buildImportTask({ id: "task-2", parentId: "task-1" }),
+          buildImportTask({ id: "task-3", parentId: "task-2" }),
+          buildImportTask({ id: "task-4", parentId: "task-3" }),
+          buildImportTask({ id: "task-5", parentId: "task-4" }),
+          buildImportTask({ id: "task-6", parentId: "task-5" }),
+        ],
+        trackRecords: [],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("子タスクが21件以上のとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [
+          buildImportTask({ id: "parent-task" }),
+          ...Array.from({ length: 21 }, (_, index) =>
+            buildImportTask({
+              id: `child-task-${index + 1}`,
+              parentId: "parent-task",
+              dispOrder: index + 1,
+            }),
+          ),
+        ],
+        trackRecords: [],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("実績IDが重複しているとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [buildImportTask({ id: "task-1" })],
+        trackRecords: [
+          buildImportTrackRecord({ id: "record-1", taskId: "task-1" }),
+          buildImportTrackRecord({ id: "record-1", taskId: "task-1" }),
+        ],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("存在しないタスクの実績があるとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [buildImportTask({ id: "task-1" })],
+        trackRecords: [
+          buildImportTrackRecord({ id: "record-1", taskId: "unknown-task" }),
+        ],
+      });
+
+      expect(() => {
+        act(() => {
+          result.current.manager.importState(jsonStr);
+        });
+      }).toThrow("不正なファイル形式です");
+
+      expect(result.current.context.state.tasks).toHaveLength(0);
+      expect(result.current.context.state.trackRecords).toHaveLength(0);
+    });
+
+    it("実績の開始時刻と終了時刻が逆転しているとき、エラーをスローする", () => {
+      const { result } = renderHook(
+        () => ({ manager: useTaskManager(), context: useTaskContext() }),
+        { wrapper },
+      );
+      const jsonStr = JSON.stringify({
+        tasks: [buildImportTask({ id: "task-1" })],
+        trackRecords: [
+          buildImportTrackRecord({
+            id: "record-1",
+            taskId: "task-1",
+            startDatetime: new Date("2024-01-01T11:00:00"),
+            endDatetime: new Date("2024-01-01T10:00:00"),
+          }),
+        ],
+      });
+
       expect(() => {
         act(() => {
           result.current.manager.importState(jsonStr);

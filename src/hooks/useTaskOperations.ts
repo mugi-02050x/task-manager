@@ -54,12 +54,12 @@ export function useTaskOperations() {
 
   /**
    * インポートの統合窓口。
-   * 将来は import 実行前にタイマー状態をリセットし、
-   * 取り込み後の task 集合との不整合を防ぐ。
+   * import 成功後にタイマー状態をリセットし、
+   * import 失敗時は計測中状態を維持する。
    */
   function importState(json: string): void {
-    timer.reset();
     taskManager.importState(json);
+    timer.reset();
   }
 
   return {

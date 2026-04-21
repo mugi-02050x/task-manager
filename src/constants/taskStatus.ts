@@ -1,6 +1,6 @@
-import type { TaskStatus } from "../types/task";
+import { TASK_STATUSES, type TaskStatus } from "../types/task";
 
-const STATUS_OPTIONS: TaskStatus[] = ["WAITING", "WORKING", "COMPLETED"];
+const STATUS_OPTIONS: TaskStatus[] = [...TASK_STATUSES];
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
   WAITING: "未着手",

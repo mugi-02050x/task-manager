@@ -1,5 +1,7 @@
 // Main
-type TaskStatus = "WAITING" | "WORKING" | "COMPLETED";
+const TASK_STATUSES = ["WAITING", "WORKING", "COMPLETED"] as const;
+
+type TaskStatus = (typeof TASK_STATUSES)[number];
 
 type Task = {
   id: string;
@@ -92,3 +94,5 @@ export type {
   CreateTaskParams,
   UpdateTaskParams,
 };
+
+export { TASK_STATUSES };
