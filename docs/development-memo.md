@@ -759,3 +759,83 @@ A. 初期状態から新しく state が作られ、その内容で localStorage
   - `removeValue` 実行で state が `initialValue` に戻り、localStorage から削除されることを確認
 - `useTaskManager.test.ts`
   - `clearState` 実行で Context の state が空になり、`task-manager` キーも削除されることを確認
+
+---
+
+## GitHub Pages公開前の確認と履歴整理（2026-04-21）
+
+### 背景
+
+GitHub Pages で公開する前に、デプロイ手順・ブランチ運用・公開リポジトリに含まれる情報を確認した。
+
+### GitHub Pagesデプロイ手順
+
+`docs/github-pages-deploy.md` を追加し、以下を整理した。
+
+- Vite の `base` 設定
+  - プロジェクトページとして公開するため `base: "/task-manager/"` を設定する
+- GitHub Actions によるデプロイ
+  - `main` ブランチへの push をトリガーに `npm ci` → `lint` → `test` → `build` → GitHub Pages deploy を実行する
+- GitHub Pages の設定
+  - `Settings > Pages > Build and deployment > Source` を `GitHub Actions` にする
+- localStorage 永続化
+  - GitHub Pages では訪問者のブラウザ環境を汚さないため、`VITE_ENABLE_LOCAL_STORAGE_PERSIST` は設定しない
+  - ローカル開発で確認する場合のみ `.env.local` に設定する
+
+### デプロイ後のブランチ運用
+
+公開後は `main` をデプロイトリガーとして扱い、通常開発は `develop` ブランチで行う方針にした。
+
+運用イメージ:
+
+1. 初回公開後、`main` から `develop` を作成する
+2. 日常の修正は `develop` で行う
+3. `develop` で `npm run lint` / `npm test -- --run` / `npm run build` を確認する
+4. 公開したいタイミングで `develop` から `main` へ Pull Request を作成する
+5. `main` に merge されたら GitHub Actions で GitHub Pages に自動デプロイする
+
+この運用により、作業中の変更が直接公開されることを避けられる。
+
+### センシティブ情報チェック
+
+公開前に以下を確認した。
+
+- `.env.local` は存在するが、内容は `VITE_ENABLE_LOCAL_STORAGE_PERSIST=false` のみ
+- `.env.local` は `.gitignore` の `*.local` により追跡対象外
+- APIキー、アクセストークン、秘密鍵、パスワードらしい文字列は見つからなかった
+- `docs/github-pages-deploy.md` に含まれる `id-token` は GitHub Actions の権限定義であり、シークレットではない
+- `docs/sample-data.json` やテスト内の `task-1` などはサンプルIDであり、実データではない
+
+### Gitコミットメールの扱い
+
+**Q. Git のメールアドレスは一般的に隠すべきか？**  
+A. 個人開発・学習用リポジトリを公開する場合は、GitHub の noreply メールにするのが無難。コミット履歴の author / committer email は公開リポジトリで見えるため、スパムや個人情報の露出を減らせる。
+
+**Q. すでに push 済みの場合はどうするか？**  
+A. 今後のコミットだけ noreply にする方法と、過去履歴を書き換える方法がある。今回は自分以外が利用していないリポジトリのため、過去履歴も書き換える方針にした。
+
+### 実施内容
+
+- GitHub の ID付き noreply メールを確認
+- 全コミットの author / committer email を noreply に置換
+- ローカル Git 設定も noreply に変更
+- `origin/main` に `--force-with-lease` で反映
+
+確認結果:
+
+- `git log --all` 上の author / committer email は noreply のみ
+- 履歴内に元のメールアドレス文字列は見つからない
+- 今後のローカルコミットも noreply メールで作成される
+
+### コミットハッシュ変更の影響
+
+履歴を書き換えると、同じ内容でも Git 上は別コミットとして扱われるため、コミットハッシュが変わる。
+
+影響:
+
+- 古い commit URL は参照できなくなることがある
+- 他の clone 済み環境では `git pull` が素直に進まないことがある
+- 古い `main` から派生したブランチがある場合は rebase や再作成が必要になる
+- GitHub Actions や GitHub Pages の過去実行履歴は古いコミットを指す場合がある
+
+今回は自分以外が利用していない前提のため、実害は小さいと判断した。別環境で clone 済みの場合は、未保存作業がなければ再 clone が最も簡単。
