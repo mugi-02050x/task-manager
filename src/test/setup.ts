@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom'
 import { vi, beforeEach, afterEach } from "vitest";
 
 // localStorage のモック（全テストで共通利用）
