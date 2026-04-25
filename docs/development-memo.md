@@ -970,6 +970,29 @@ A. 初回デプロイ実行前。未設定だと `actions/configure-pages` で `
 
 最終的に `main` は Ruleset を `Active` にして運用する。`Disabled` だとルールは適用されない。
 
+### 設定可能な主なルール（概要）
+
+- `Require a pull request before merging`
+  - `main` への変更を PR 経由に制限する
+- `Require status checks to pass before merging`
+  - 指定した CI チェック（lint/test/build など）の成功をマージ条件にする
+- `Restrict updates`
+  - 対象ブランチへの直接 push を禁止する
+- `Block force pushes`
+  - force push を禁止し、履歴の強制書き換えを防ぐ
+- `Restrict deletions`
+  - 対象ブランチの削除を禁止する
+- `Require linear history`
+  - merge commit を禁止し、線形履歴（rebase/squash）に限定する
+- `Require signed commits`
+  - 署名付きコミットのみ許可する
+- `Require deployments to succeed before merging`
+  - 指定 Environment へのデプロイ成功をマージ条件にする
+  - 今回の構成（`main` push 後に `github-pages` デプロイ）では通常は必須化しない
+- `Require review from Code Owners`
+  - `CODEOWNERS` 指定パスに対して、owner レビューを必須化する
+  - 1人運用では運用負荷が高いため通常は使わない
+
 ### 現在の方針（1人運用）
 
 - `Require a pull request before merging`: ON
