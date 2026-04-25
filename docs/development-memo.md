@@ -996,13 +996,23 @@ A. 初回デプロイ実行前。未設定だと `actions/configure-pages` で `
 ### 現在の方針（1人運用）
 
 - `Require a pull request before merging`: ON
-- `Require status checks to pass before merging`: ON
-- `Restrict updates`: ON（direct push 禁止）
+- `Require status checks to pass before merging`: ON（必須チェックは `build` のみ）
+- `Restrict updates`: OFF
 - `Block force pushes`: ON
 - `Restrict deletions`: ON
 - `Bypass`: 未設定
+
+`Restrict updates` は一見 direct push 禁止に見えるが、bypass 権限を持つユーザー以外による対象ブランチ更新を広く制限する。
+
+PR の merge も最終的には `main` ブランチ更新なので、`Restrict updates` を ON にしたまま bypass 未設定にすると、PR からの merge も `Cannot update this protected ref` でブロックされる。
+
+1人運用では、direct push を避ける目的は `Require a pull request before merging` で担い、`Restrict updates` は OFF にする。
+
+`deploy` / `deploy-pages` は PR では本番デプロイを行わないため、必須チェックには含めない。`main` への PR では `build` が成功すればよい。
 
 ### 確認結果
 
 - `Restrict updates` 有効 + Ruleset `Active` 後、`main` への直接 push は `GH013` で拒否されることを確認済み
 - `Enforcement status` が `Disabled` の場合は、同じ設定でも直接 push が通る
+- `Restrict updates` 有効 + bypass 未設定では、PR merge 時にも `Cannot update this protected ref` が発生する
+- `Restrict updates` を OFF にし、必須チェックを `build` のみにすると `develop -> main` の PR を merge できる
