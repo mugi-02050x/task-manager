@@ -10,7 +10,7 @@ https://<GitHubユーザー名>.github.io/task-manager/
 
 ## 前提条件
 
-- GitHub リポジトリにコードを push 済みであること
+- GitHub リポジトリが作成済みであること
 - ローカルで依存関係をインストール済みであること
 
 ```bash
@@ -85,6 +85,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout
@@ -122,6 +124,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Deploy to GitHub Pages
@@ -133,7 +137,41 @@ jobs:
 
 手動で実行したい場合は、GitHub の `Actions` タブから `Deploy to GitHub Pages` を選択し、`Run workflow` を実行する。
 
-## 3. develop ブランチを作成する
+## 3. GitHub Pages の公開元を設定する（先に実施）
+
+GitHub のリポジトリ画面で以下を設定する。
+
+1. `Settings` を開く
+2. `Pages` を開く
+3. `Build and deployment` の `Source` を `GitHub Actions` に変更する
+
+この設定を先に行わないと、`actions/configure-pages` ステップで `Get Pages site failed (Not Found)` が発生する場合がある。
+
+## 4. デプロイを確認する
+
+`main` ブランチに push する。
+
+```bash
+git push origin main
+```
+
+GitHub の `Actions` タブで `Deploy to GitHub Pages` が成功していることを確認する。
+
+成功後、以下の URL にアクセスする。
+
+```txt
+https://<GitHubユーザー名>.github.io/task-manager/
+```
+
+確認観点は以下。
+
+- アプリ画面が表示される
+- ブラウザをリロードしても 404 にならない
+- タスクの追加・編集・削除ができる
+- JSON の Import / Export ができる
+- localStorage 永続化がデフォルトOFFである
+
+## 5. develop ブランチを作成する
 
 デプロイ後の通常開発は `develop` ブランチで行う。
 
@@ -172,38 +210,6 @@ git push origin develop
 
 `main` に merge されると、GitHub Actions により GitHub Pages へ自動デプロイされる。
 
-## 4. GitHub Pages の公開元を設定する
-
-GitHub のリポジトリ画面で以下を設定する。
-
-1. `Settings` を開く
-2. `Pages` を開く
-3. `Build and deployment` の `Source` を `GitHub Actions` に変更する
-
-## 5. デプロイを確認する
-
-`main` ブランチに push する。
-
-```bash
-git push origin main
-```
-
-GitHub の `Actions` タブで `Deploy to GitHub Pages` が成功していることを確認する。
-
-成功後、以下の URL にアクセスする。
-
-```txt
-https://<GitHubユーザー名>.github.io/task-manager/
-```
-
-確認観点は以下。
-
-- アプリ画面が表示される
-- ブラウザをリロードしても 404 にならない
-- タスクの追加・編集・削除ができる
-- JSON の Import / Export ができる
-- localStorage 永続化がデフォルトOFFである
-
 ## localStorage 永続化について
 
 本アプリは GitHub Pages で公開した際に、訪問者のブラウザ環境へ意図せずデータを保存しない方針としている。
@@ -217,6 +223,32 @@ VITE_ENABLE_LOCAL_STORAGE_PERSIST=true
 ```
 
 `.env.local` はローカル開発用の設定であり、GitHub Pages のデプロイ設定には含めない。
+
+## よくある質問
+
+### なぜ workflow では Node 24 を使うのか
+
+GitHub Actions 側の実行環境を安定させるため、LTS 系の Node を固定している。
+
+ローカルで Node 25 を使っていても動作する場合はあるが、CI とローカルの差分で不整合が起きる可能性がある。
+
+### `npm ci` とは何か
+
+`npm ci` は CI 向けのクリーンインストールで、`package-lock.json` を厳密に使って依存関係を再現する。
+
+`npm install` と違い、lockfile と不整合がある場合はエラーで停止するため、デプロイ時の再現性が高い。
+
+### private リポジトリのまま GitHub Pages は使えるか
+
+workflow の定義・実行自体は private のまま可能。
+
+ただし GitHub Pages の利用可否はプランに依存するため、公開方針と契約プランを確認して運用する。
+
+### 手順のどこで Pages を有効化すべきか
+
+`Settings > Pages > Build and deployment > Source = GitHub Actions` は、初回デプロイ実行前に設定する。
+
+先に設定しないと、`actions/configure-pages` で `Get Pages site failed (Not Found)` が発生することがある。
 
 ## トラブルシュート
 
