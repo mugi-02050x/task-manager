@@ -160,7 +160,7 @@ React学習用として作成し、フロントエンド実装力と設計力を
 
 ### デプロイ
 
-- [ ] GitHub Pages（github.io）で公開済みのURLが存在する
+- [x] GitHub Pages（github.io）で公開済みのURLが存在する
 
 ---
 
