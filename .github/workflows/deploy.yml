@@ -4,9 +4,29 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - ".github/workflows/deploy.yml"
   pull_request:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -47,23 +67,16 @@ jobs:
         run: npm run build
 
       - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: PR deploy check
-        run: echo "Deploy check passed for pull_request. Actual deploy runs on push to main."
-
-  deploy-pages:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
