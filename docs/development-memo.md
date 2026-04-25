@@ -882,6 +882,29 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - ".github/workflows/deploy.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.config.ts"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -922,14 +945,17 @@ jobs:
         run: npm run build
 
       - name: Setup Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -949,6 +975,7 @@ jobs:
 - `main` はデプロイ専用ブランチとして扱う
 - 通常開発は `develop` 基点で行う
 - リリース単位で `develop -> main` の PR を作成してマージする
+- docs-only 変更（`docs/**` や `*.md`）では workflow を起動しない
 
 ### よくある質問
 
@@ -996,7 +1023,7 @@ A. 初回デプロイ実行前。未設定だと `actions/configure-pages` で `
 ### 現在の方針（1人運用）
 
 - `Require a pull request before merging`: ON
-- `Require status checks to pass before merging`: ON（必須チェックは `build` のみ）
+- `Require status checks to pass before merging`: OFF（`required_status_checks` は未設定）
 - `Restrict updates`: OFF
 - `Block force pushes`: ON
 - `Restrict deletions`: ON
@@ -1008,11 +1035,11 @@ PR の merge も最終的には `main` ブランチ更新なので、`Restrict u
 
 1人運用では、direct push を避ける目的は `Require a pull request before merging` で担い、`Restrict updates` は OFF にする。
 
-`deploy` / `deploy-pages` は PR では本番デプロイを行わないため、必須チェックには含めない。`main` への PR では `build` が成功すればよい。
+`required_status_checks` を使わない運用のため、PR でのチェック成功は merge 条件に含めない。品質確認は必要に応じてローカル実行で担保する。
 
 ### 確認結果
 
 - `Restrict updates` 有効 + Ruleset `Active` 後、`main` への直接 push は `GH013` で拒否されることを確認済み
 - `Enforcement status` が `Disabled` の場合は、同じ設定でも直接 push が通る
 - `Restrict updates` 有効 + bypass 未設定では、PR merge 時にも `Cannot update this protected ref` が発生する
-- `Restrict updates` を OFF にし、必須チェックを `build` のみにすると `develop -> main` の PR を merge できる
+- `Restrict updates` を OFF にすると `develop -> main` の PR を merge できる
