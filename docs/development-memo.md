@@ -94,11 +94,17 @@ localStorage 永続化は開発環境で必要な場合に使う。GitHub Pages 
 
 ### Q&A
 
-**Q. localStorage のキーを削除するだけではだめか？**  
-A. だめ。画面上の React state が残るため、UI と保存内容がずれる。state と storage を同時に初期化する。
+**Q. 保存データのクリア機能では何を削除するのか？**  
+A. localStorage の保存キーと、画面上で保持している React state の両方を初期化する。
 
-**Q. 削除後にタスクを追加するとどうなるか？**  
-A. 初期状態から新しい state が作られ、その内容で localStorage キーが再作成される。古いデータは戻らない。
+**Q. なぜ localStorage のキー削除だけではだめか？**  
+A. localStorage だけ削除しても、表示中の React state は残るため。UI と保存内容がずれないように state も初期化する。
+
+**Q. クリア直後に初期 state が再保存されないようにする理由は？**  
+A. `useEffect` による永続化が走ると、削除直後に空の初期 state が localStorage へ再作成されるため。クリア直後の1回だけ persist をスキップする。
+
+**Q. クリア後にタスクを追加するとどうなるか？**  
+A. 初期状態から新しい state が作られ、その内容で localStorage キーが再作成される。クリア済みの古いデータは戻らない。
 
 **Q. `.env.local` はデプロイ設定に含めるべきか？**  
 A. 含めない。ローカル開発専用で、`.gitignore` により追跡対象外にする。
